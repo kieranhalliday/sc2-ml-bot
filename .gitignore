@@ -1,0 +1,10 @@
+/venv
+/wandb
+/logs
+/__pycache__
+/models
+results.txt
+*.pkl
+
+
+.DS_Store
