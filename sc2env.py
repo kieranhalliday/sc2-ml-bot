@@ -1,5 +1,5 @@
-import gym
-from gym import spaces
+import gymnasium
+from gymnasium import spaces
 import numpy as np
 import subprocess
 import pickle
@@ -7,7 +7,7 @@ import time
 import os
 
 
-class Sc2Env(gym.Env):
+class Sc2Env(gymnasium.Env):
     """Custom Environment that follows gym interface"""
 
     def __init__(self):
@@ -18,7 +18,10 @@ class Sc2Env(gym.Env):
         self.action_space = spaces.Discrete(6)
         self.observation_space = spaces.Box(
             # TODO: Need to change to be map dimensions
-            low=0, high=255, shape=(200, 192, 3), dtype=np.uint8
+            low=0,
+            high=255,
+            shape=(200, 192, 3),
+            dtype=np.uint8,
         )
 
     def step(self, action):
@@ -82,10 +85,11 @@ class Sc2Env(gym.Env):
                 action = 3
 
         info = {}
+        truncated = {}
         observation = state
-        return observation, reward, done, info
+        return observation, reward, done, truncated, info, 
 
-    def reset(self):
+    def reset(self, seed=int(time.time())):
         print("RESETTING ENVIRONMENT!!!!!!!!!!!!!")
         # TODO: Need to change to be map dimensions
         map = np.zeros((200, 192, 3), dtype=np.uint8)
@@ -101,4 +105,4 @@ class Sc2Env(gym.Env):
 
         # run incredibot-sct.py non-blocking:
         subprocess.Popen(["python3", "bot.py"])
-        return observation  # reward, done, info can't be included
+        return observation, None  # reward, done, info can't be included

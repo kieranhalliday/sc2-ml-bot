@@ -2,6 +2,8 @@ from sc2.bot_ai import BotAI  # parent class we inherit from
 from sc2.data import Difficulty, Race  # difficulty for bots, race for the 1 of 3 races
 from sc2.main import (
     run_game,
+    run_multiple_games,
+    GameMatch,
 )  # function that facilitates actually running the agents in games
 from sc2.player import (
     Bot,
@@ -341,17 +343,17 @@ class IncrediBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
         # show map with opencv, resized to be larger:
         # horizontal flip:
 
-        # cv2.imshow(
-        #     "map",
-        #     cv2.flip(
-        #         cv2.resize(map, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST), 0
-        #     ),
-        # )
-        # cv2.waitKey(1)
+        cv2.imshow(
+            "map",
+            cv2.flip(
+                cv2.resize(map, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST), 0
+            ),
+        )
+        cv2.waitKey(1)
 
-        # if SAVE_REPLAY:
-        #     # save map image into "replays dir"
-        #     cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", map)
+        if SAVE_REPLAY:
+            # save map image into "replays dir"
+            cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", map)
 
         reward = 0
 
@@ -389,15 +391,19 @@ class IncrediBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             pickle.dump(data, f)
 
 
-result = run_game(  # run_game is a function that runs the game.
-    maps.get("Oceanborn513AIE"),  # the map we are playing on
+result = run_multiple_games(  # run_game is a function that runs the game.
     [
-        Bot(
-            Race.Protoss, IncrediBot()
-        ),  # runs our coded bot, protoss race, and we pass our bot object
-        Computer(Race.Zerg, Difficulty.Hard),
-    ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
-    realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
+        GameMatch(
+            maps.get("Oceanborn513AIE"),  # the map we are playing on
+            [
+                Bot(
+                    Race.Protoss, IncrediBot()
+                ),  # runs our coded bot, protoss race, and we pass our bot object
+                Computer(Race.Random, Difficulty.VeryHard),
+            ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
+            realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
+        )
+    ]
 )
 
 
