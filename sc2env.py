@@ -26,9 +26,7 @@ class Sc2Env(gymnasium.Env):
 
     def step(self, action):
         wait_for_action = True
-        # waits for action.
         while wait_for_action:
-            # print("waiting for action")
             try:
                 with open("state_rwd_action.pkl", "rb") as f:
                     state_rwd_action = pickle.load(f)
@@ -90,7 +88,7 @@ class Sc2Env(gymnasium.Env):
         return observation, reward, done, truncated, info, 
 
     def reset(self, seed=int(time.time())):
-        print("RESETTING ENVIRONMENT!!!!!!!!!!!!!")
+        print("Resetting environment")
         # TODO: Need to change to be map dimensions
         map = np.zeros((200, 192, 3), dtype=np.uint8)
         observation = map
@@ -103,6 +101,6 @@ class Sc2Env(gymnasium.Env):
         with open("state_rwd_action.pkl", "wb") as f:
             pickle.dump(data, f)
 
-        # run incredibot-sct.py non-blocking:
+        # run bot.py non-blocking:
         subprocess.Popen(["python3", "bot.py"])
         return observation, None  # reward, done, info can't be included

@@ -14,4 +14,6 @@ obs = env.reset()
 done = False
 while not done:
     action, _states = model.predict(obs)
-    obs, rewards, dones, info = env.step(action)
+    # Old version
+    # obs, rewards, dones, info = env.step(action)
+    obs, rewards, done, info = env.step(action)

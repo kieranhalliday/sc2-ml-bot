@@ -28,8 +28,8 @@ conf_dict = {
 }
 
 run = wandb.init(
-    project=f"SC2RLv6",
-    entity="sentdex",
+    project=f"sc2-ml-bot",
+    entity="halliminga",
     config=conf_dict,
     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
     save_code=True,  # save source code
