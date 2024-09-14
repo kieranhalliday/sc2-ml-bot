@@ -5,8 +5,8 @@ import time
 from wandb.integration.sb3 import WandbCallback
 import wandb
 
-
-LOAD_MODEL = "models/1647915989/1647915989.zip"
+# Continue training an existing model
+LOAD_MODEL = "data/models/1726325503/1000.zip"
 # Environment:
 env = Sc2Env()
 
@@ -15,8 +15,8 @@ model = PPO.load(LOAD_MODEL, env=env)
 
 model_name = f"{int(time.time())}"
 
-models_dir = f"models/{model_name}/"
-logdir = f"logs/{model_name}/"
+models_dir = f"data/models/{model_name}/"
+logdir = f"data/logs/{model_name}/"
 
 
 conf_dict = {
@@ -30,6 +30,7 @@ conf_dict = {
 run = wandb.init(
     project=f"sc2-ml-bot",
     entity="halliminga",
+    dir="data/",
     config=conf_dict,
     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
     save_code=True,  # save source code
@@ -37,7 +38,7 @@ run = wandb.init(
 
 
 # further train:
-TIMESTEPS = 10000
+TIMESTEPS = 1000
 iters = 0
 while True:
     print("On iteration: ", iters)

@@ -1,7 +1,6 @@
 from sc2.bot_ai import BotAI  # parent class we inherit from
 from sc2.data import Difficulty, Race  # difficulty for bots, race for the 1 of 3 races
 from sc2.main import (
-    run_game,
     run_multiple_games,
     GameMatch,
 )  # function that facilitates actually running the agents in games
@@ -40,10 +39,8 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     state_rwd_action = pickle.load(f)
 
                     if state_rwd_action["action"] is None:
-                        # print("No action yet")
                         no_action = True
                     else:
-                        # print("Action found")
                         no_action = False
             except:
                 pass
@@ -51,6 +48,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
         await self.distribute_workers()  # put idle workers back to work
 
         action = state_rwd_action["action"]
+        print(action)
         reward = 0
 
         # TODO: make this an enum
@@ -218,7 +216,6 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             c = [175, 255, 255]
             fraction = mineral.mineral_contents / 1800
             if mineral.is_visible:
-                # print(mineral.mineral_contents)
                 map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
             else:
                 map[math.ceil(pos.y)][math.ceil(pos.x)] = [20, 75, 50]
@@ -337,6 +334,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # save map image into "replays dir"
             cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", map)
 
+        # Reward logic
+        # Get a smaller reward down to negatives each time you build a tech building that already exists
+        #   Not rax, fac, port, cc, depot
         try:
             attack_count = 0
             # iterate through our marines:
@@ -356,7 +356,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         if iteration % 100 == 0:
             print(
-                f"Iter: {iteration}. RWD: {reward}. VR: {self.units(UnitTypeId.VOIDRAY).amount}"
+                f"Iter: {iteration}. RWD: {reward}."
             )
 
         # write the file:
@@ -370,8 +370,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
         with open("state_rwd_action.pkl", "wb") as f:
             pickle.dump(data, f)
 
-
-result = run_multiple_games(  # run_game is a function that runs the game.
+result = run_multiple_games(
     [
         GameMatch(
             maps.get("Oceanborn513AIE"),  # the map we are playing on
@@ -380,7 +379,7 @@ result = run_multiple_games(  # run_game is a function that runs the game.
                     Race.Terran, TerranBot()
                 ),  # runs our coded bot, protoss race, and we pass our bot object
                 Computer(Race.Random, Difficulty.VeryHard),
-            ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
+            ],  # runs a pre-made computer agent
             realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
         )
     ]

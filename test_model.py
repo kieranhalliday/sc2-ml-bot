@@ -1,8 +1,8 @@
 from stable_baselines3 import PPO
 from sc2env import Sc2Env
 
-
-LOAD_MODEL = "models/1647915989/2880000.zip"
+# Play a game with a given model
+LOAD_MODEL = "data/models/1726325503/1000.zip"
 # Environment:
 env = Sc2Env()
 
@@ -10,10 +10,8 @@ env = Sc2Env()
 model = PPO.load(LOAD_MODEL)
 
 # Play the game:
-obs = env.reset()
+obs, _seed = env.reset()
 done = False
 while not done:
     action, _states = model.predict(obs)
-    # Old version
-    # obs, rewards, dones, info = env.step(action)
-    obs, rewards, done, info = env.step(action)
+    obs, rewards, done, truncated, info = env.step(action)

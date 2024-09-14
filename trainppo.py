@@ -5,11 +5,12 @@ import time
 from wandb.integration.sb3 import WandbCallback
 import wandb
 
-
+# Create a new model to train
 model_name = f"{int(time.time())}"
 
-models_dir = f"models/{model_name}/"
-logdir = f"logs/{model_name}/"
+models_dir = f"data/models/{model_name}/"
+# View logs: tensorboard --logdir=data/logs
+logdir = f"data/logs/{model_name}/"
 
 
 conf_dict = {
@@ -23,6 +24,7 @@ conf_dict = {
 run = wandb.init(
     project=f"sc2-ml-bot",
     config=conf_dict,
+    dir="data/",
     sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
     save_code=True,  # optional
 )
@@ -38,7 +40,7 @@ env = Sc2Env()
 
 model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=logdir)
 
-TIMESTEPS = 10000
+TIMESTEPS = 1000
 iters = 0
 while True:
     print("On iteration: ", iters)

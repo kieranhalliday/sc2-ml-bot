@@ -1,8 +1,6 @@
 /venv
-/wandb
-/logs
+/data
 /__pycache__
-/models
 results.txt
 *.pkl
 

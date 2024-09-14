@@ -5,6 +5,7 @@ import subprocess
 import pickle
 import time
 import os
+from actions import bot_actions
 
 
 class Sc2Env(gymnasium.Env):
@@ -15,11 +16,11 @@ class Sc2Env(gymnasium.Env):
         # Define action and observation space
         # They must be gym.spaces objects
         # Example when using discrete actions:
-        self.action_space = spaces.Discrete(6)
+        self.action_space = spaces.Discrete(len(bot_actions))
         self.observation_space = spaces.Box(
-            # TODO: Need to change to be map dimensions
             low=0,
             high=255,
+            # TODO: Need to change to be map dimensions
             shape=(200, 192, 3),
             dtype=np.uint8,
         )
@@ -32,10 +33,8 @@ class Sc2Env(gymnasium.Env):
                     state_rwd_action = pickle.load(f)
 
                     if state_rwd_action["action"] is not None:
-                        # print("No action yet")
                         wait_for_action = True
                     else:
-                        # print("Needs action")
                         wait_for_action = False
                         state_rwd_action["action"] = action
                         with open("state_rwd_action.pkl", "wb") as f:
@@ -53,10 +52,8 @@ class Sc2Env(gymnasium.Env):
                     with open("state_rwd_action.pkl", "rb") as f:
                         state_rwd_action = pickle.load(f)
                         if state_rwd_action["action"] is None:
-                            # print("No state yet")
                             wait_for_state = True
                         else:
-                            # print("Got state state")
                             state = state_rwd_action["state"]
                             reward = state_rwd_action["reward"]
                             done = state_rwd_action["done"]
@@ -67,11 +64,11 @@ class Sc2Env(gymnasium.Env):
                 # TODO: Need to change to be map dimensions
                 map = np.zeros((200, 192, 3), dtype=np.uint8)
                 observation = map
-                # if still failing, input an ACTION, 3 (scout)
+                # if still failing, input an ACTION, 98 (scout)
                 data = {
                     "state": map,
                     "reward": 0,
-                    "action": 3,
+                    "action": 98,
                     "done": False,
                 }  # empty action waiting for the next one!
                 with open("state_rwd_action.pkl", "wb") as f:
@@ -80,7 +77,7 @@ class Sc2Env(gymnasium.Env):
                 state = map
                 reward = 0
                 done = False
-                action = 3
+                action = 98
 
         info = {}
         truncated = {}
