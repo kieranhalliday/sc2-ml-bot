@@ -16,6 +16,7 @@ model = PPO.load(LOAD_MODEL, env=env)
 model_name = f"{int(time.time())}"
 
 models_dir = f"data/models/{model_name}/"
+# View logs: tensorboard --logdir=data/logs
 logdir = f"data/logs/{model_name}/"
 
 
@@ -38,7 +39,7 @@ run = wandb.init(
 
 
 # further train:
-TIMESTEPS = 1000
+TIMESTEPS = 10000
 iters = 0
 while True:
     print("On iteration: ", iters)

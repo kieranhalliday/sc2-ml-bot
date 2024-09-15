@@ -20,6 +20,7 @@ import time
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.upgrade_id import UpgradeId
+from actions import Actions, bot_actions
 
 SAVE_REPLAY = True
 
@@ -48,42 +49,14 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
         await self.distribute_workers()  # put idle workers back to work
 
         action = state_rwd_action["action"]
-        print(action)
         reward = 0
-
-        # TODO: make this an enum
-        """
-        0: do nothing
-        1: train scv
-        2: build gas
-        3: build depot
-        4: build cc
-        5: build barracks
-        6: build ghost academy
-        7: build factory
-        8: build starport
-        9: build engineering bay
-        10: build armory
-        11: build fusion core
-        12: build bunker
-        13: build missle turret
-        14: build sensor tower
-        15: build orbital
-        16: build PF
-        """
+        print(action)
         try:
-            match action:
-                case 0:
+            match bot_actions[action]:
+                case Actions.DO_NOTHING:
                     print("No action")
                 # Build Structures
-                case 2:
-                    for cc in self.townhalls:
-                        for geyser in self.vespene_geyser.closer_than(10, cc):
-                            if not self.structures(UnitTypeId.ASSIMILATOR).closer_than(
-                                2.0, geyser
-                            ).exists and self.can_afford(UnitTypeId.ASSIMILATOR):
-                                await self.build(UnitTypeId.ASSIMILATOR, geyser)
-                case 3:
+                case Actions.BUILD_SUPPLY_DEPOT:
                     if (
                         self.supply_left < 4 * self.townhalls.amount
                         and self.supply_cap < 200
@@ -95,86 +68,94 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         await self.build(
                             UnitTypeId.SUPPLYDEPOT, near=random.choice(self.townhalls)
                         )
-                case 4:
+
+                case Actions.BUILD_GAS:
+                    for cc in self.townhalls:
+                        for geyser in self.vespene_geyser.closer_than(10, cc):
+                            if not self.structures(UnitTypeId.ASSIMILATOR).closer_than(
+                                2.0, geyser
+                            ).exists and self.can_afford(UnitTypeId.ASSIMILATOR):
+                                await self.build(UnitTypeId.ASSIMILATOR, geyser)
+                case Actions.BUILD_CC:
                     if self.already_pending(
                         UnitTypeId.COMMANDCENTER
                     ) == 0 and self.can_afford(UnitTypeId.COMMANDCENTER):
                         await self.expand_now()
-                case 5:
+                case Actions.BUILD_BARRACKS:
                     if self.can_afford(UnitTypeId.BARRACKS):
                         # TODO wall main ramp
                         await self.build(
                             UnitTypeId.BARRACKS, near=random.choice(self.townhalls)
                         )
-                case 6:
+                case Actions.BUILD_GHOST_ACADEMY:
                     if self.can_afford(UnitTypeId.GHOSTACADEMY):
                         await self.build(
                             UnitTypeId.GHOSTACADEMY, near=random.choice(self.townhalls)
                         )
-                case 7:
+                case Actions.BUILD_FACTORY:
                     if self.can_afford(UnitTypeId.FACTORY):
                         await self.build(
                             UnitTypeId.FACTORY, near=random.choice(self.townhalls)
                         )
-                case 8:
+                case Actions.BUILD_STARPORT:
                     if self.can_afford(UnitTypeId.STARPORT):
                         await self.build(
                             UnitTypeId.STARPORT, near=random.choice(self.townhalls)
                         )
-                case 9:
+                case Actions.BUILD_EBAY:
                     if self.can_afford(UnitTypeId.ENGINEERINGBAY):
                         await self.build(
                             UnitTypeId.ENGINEERINGBAY,
                             near=random.choice(self.townhalls),
                         )
-                case 10:
+                case Actions.BUILD_ARMORY:
                     if self.can_afford(UnitTypeId.ARMORY):
                         await self.build(
                             UnitTypeId.ARMORY, near=random.choice(self.townhalls)
                         )
-                case 11:
+                case Actions.BUILD_FUSION_CORE:
                     if self.can_afford(UnitTypeId.FUSIONCORE):
                         await self.build(
                             UnitTypeId.FUSIONCORE, near=random.choice(self.townhalls)
                         )
-                case 12:
+                case Actions.BUILD_BUNKER:
                     if self.can_afford(UnitTypeId.BUNKER):
                         await self.build(
                             UnitTypeId.BUNKER, near=random.choice(self.townhalls)
                         )
-                case 13:
+                case Actions.BUILD_TURRET:
                     if self.can_afford(UnitTypeId.MISSILETURRET):
                         await self.build(
                             UnitTypeId.MISSILETURRET, near=random.choice(self.townhalls)
                         )
-                case 14:
+                case Actions.BUILD_SENSOR:
                     if self.can_afford(UnitTypeId.SENSORTOWER):
                         await self.build(
                             UnitTypeId.SENSORTOWER, near=random.choice(self.townhalls)
                         )
-                case 15:
+                case Actions.BUILD_ORBITAL:
                     cc = random.choice(self.townhalls)
                     if cc.is_idle and self.can_afford(UnitTypeId.ORBITALCOMMAND):
                         await cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
-                case 16:
+                case Actions.BUILD_PF:
                     cc = random.choice(self.townhalls)
                     if cc.is_idle and self.can_afford(UnitTypeId.PLANETARYFORTRESS):
                         await cc(AbilityId.UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS)
 
                 # Train Units
-                case 1:
+                case Actions.TRAIN_SCV:
                     for cc in self.townhalls:
                         worker_count = len(self.workers.closer_than(10, cc))
                         if worker_count < 22:
                             if cc.is_idle and self.can_afford(UnitTypeId.SCV):
                                 cc.train(UnitTypeId.SCV)
-                case 17:
+                case Actions.TRAIN_MARINE:
                     for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
                         if self.can_afford(UnitTypeId.MARINE):
                             b.train(UnitTypeId.MARINE)
 
                 # Scout
-                case 98:
+                case Actions.SCOUT:
                     # are there any idle scvs:
                     try:
                         self.last_sent
@@ -188,7 +169,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         self.last_sent = iteration
 
                 # Attack (known buildings, units, then enemy base)
-                case 99:
+                case Actions.ATTACK:
                     for m in self.units(UnitTypeId.MARINE).idle:
                         # if we can attack:
                         if self.enemy_units.closer_than(10, m):
@@ -355,9 +336,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             reward = 0
 
         if iteration % 100 == 0:
-            print(
-                f"Iter: {iteration}. RWD: {reward}."
-            )
+            print(f"Iter: {iteration}. RWD: {reward}.")
 
         # write the file:
         data = {

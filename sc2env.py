@@ -13,9 +13,9 @@ class Sc2Env(gymnasium.Env):
 
     def __init__(self):
         super(Sc2Env, self).__init__()
+        self.map_size = []
         # Define action and observation space
         # They must be gym.spaces objects
-        # Example when using discrete actions:
         self.action_space = spaces.Discrete(len(bot_actions))
         self.observation_space = spaces.Box(
             low=0,
@@ -82,7 +82,13 @@ class Sc2Env(gymnasium.Env):
         info = {}
         truncated = {}
         observation = state
-        return observation, reward, done, truncated, info, 
+        return (
+            observation,
+            reward,
+            done,
+            truncated,
+            info,
+        )
 
     def reset(self, seed=int(time.time())):
         print("Resetting environment")

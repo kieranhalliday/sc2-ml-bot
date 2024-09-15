@@ -1,46 +1,61 @@
-ACTION_DO_NOTHING = 'do_nothing'
-ACTION_BUILD_SUPPLY_DEPOT = 'build_supply_depot'
-ACTION_BUILD_GAS = 'build_gas'
-ACTION_BUILD_CC = 'build_cc'
-ACTION_BUILD_BARRACKS = 'build_barracks'
-ACTION_BUILD_GHOST_ACADEMY = 'build_ghost_academy'
-ACTION_BUILD_FACTORY = 'build_factory'
-ACTION_BUILD_STARPORT = 'build_starport'
-ACTION_BUILD_EBAY = 'build_ebay'
-ACTION_BUILD_ARMORY = 'build_armory'
-ACTION_BUILD_FUSION_CORE = 'build_fusion_core'
-ACTION_BUILD_BUNKER = 'build_bunker'
-ACTOIN_BUILD_TURRET = 'build_missle_turret'
-ACTOIN_BUILD_SENSOR = 'build_sensor_tower'
-ACTION_BUILD_ORBITAL = 'build_orbital'
-ACTION_BUILD_PF = 'build_PF'
+from enum import Enum
+
+class Actions(Enum):
+    DO_NOTHING = "do_nothing"
+
+    # Build buildings
+    BUILD_SUPPLY_DEPOT = "build_supply_depot"
+    BUILD_GAS = "build_gas"
+    BUILD_CC = "build_cc"
+    BUILD_BARRACKS = "build_barracks"
+    BUILD_GHOST_ACADEMY = "build_ghost_academy"
+    BUILD_FACTORY = "build_factory"
+    BUILD_STARPORT = "build_starport"
+    BUILD_EBAY = "build_ebay"
+    BUILD_ARMORY = "build_armory"
+    BUILD_FUSION_CORE = "build_fusion_core"
+    BUILD_BUNKER = "build_bunker"
+    BUILD_TURRET = "build_missle_turret"
+    BUILD_SENSOR = "build_sensor_tower"
+    BUILD_ORBITAL = "build_orbital"
+    BUILD_PF = "build_PF"
+
+    # Train units
+    TRAIN_SCV = "train_scv"
+    TRAIN_MARINE = "train_marine"
+    
+    # Orders
+    SCOUT = "scout"
+    ATTACK = "attack"
 
 
-ACTION_TRAIN_SCV = 'train_scv'
-ACTION_TRAIN_MARINE = 'train_marine'
+
 
 bot_actions = [
-ACTION_DO_NOTHING,
-
-# Build Buildings
-ACTION_BUILD_SUPPLY_DEPOT,
-ACTION_BUILD_GAS,
-ACTION_BUILD_CC,
-ACTION_BUILD_BARRACKS,
-ACTION_BUILD_GHOST_ACADEMY,
-ACTION_BUILD_FACTORY,
-ACTION_BUILD_STARPORT,
-ACTION_BUILD_EBAY,
-ACTION_BUILD_ARMORY,
-ACTION_BUILD_FUSION_CORE,
-ACTION_BUILD_BUNKER,
-ACTOIN_BUILD_TURRET,
-ACTOIN_BUILD_SENSOR,
-ACTION_BUILD_ORBITAL,
-ACTION_BUILD_PF,
-
-# Train Units
-ACTION_TRAIN_SCV,
-ACTION_TRAIN_MARINE,
-
+    Actions.DO_NOTHING,
+    
+    # Build Buildings
+    Actions.BUILD_SUPPLY_DEPOT,
+    Actions.BUILD_GAS,
+    Actions.BUILD_CC,
+    Actions.BUILD_BARRACKS,
+    Actions.BUILD_GHOST_ACADEMY,
+    Actions.BUILD_FACTORY,
+    Actions.BUILD_STARPORT,
+    Actions.BUILD_EBAY,
+    Actions.BUILD_ARMORY,
+    Actions.BUILD_FUSION_CORE,
+    Actions.BUILD_BUNKER,
+    Actions.BUILD_TURRET,
+    Actions.BUILD_SENSOR,
+    Actions.BUILD_ORBITAL,
+    Actions.BUILD_PF,
+    
+    # Train Units
+    Actions.TRAIN_SCV,
+    Actions.TRAIN_MARINE,
+    
+    # Orders
+    Actions.SCOUT,
+    Actions.ATTACK
 ]
