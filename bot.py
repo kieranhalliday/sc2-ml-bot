@@ -22,6 +22,9 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.upgrade_id import UpgradeId
 from actions import Actions, bot_actions
 
+from sc2.game_info import GameInfo
+import constants
+
 SAVE_REPLAY = True
 
 total_steps = 10000
@@ -36,7 +39,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
         no_action = True
         while no_action:
             try:
-                with open("state_rwd_action.pkl", "rb") as f:
+                with open("data/state_rwd_action.pkl", "rb") as f:
                     state_rwd_action = pickle.load(f)
 
                     if state_rwd_action["action"] is None:
@@ -188,7 +191,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             print(e)
 
         map = np.zeros(
-            (self.game_info.map_size[0], self.game_info.map_size[1], 3), dtype=np.uint8
+            (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
         )
 
         # draw the minerals:
@@ -346,7 +349,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             "done": False,
         }  # empty action waiting for the next one!
 
-        with open("state_rwd_action.pkl", "wb") as f:
+        with open("data/state_rwd_action.pkl", "wb") as f:
             pickle.dump(data, f)
 
 result = run_multiple_games(
@@ -370,12 +373,13 @@ if str(result) == "Result.Victory":
 else:
     rwd = -500
 
-with open("results.txt", "a") as f:
+with open("data/results.txt", "a") as f:
     f.write(f"{result}\n")
 
 
-# TODO: Need to change to be map dimensions
-map = np.zeros((200, 192, 3), dtype=np.uint8)
+map = np.zeros(
+            (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
+        )
 observation = map
 data = {
     "state": map,
@@ -383,7 +387,7 @@ data = {
     "action": None,
     "done": True,
 }  # empty action waiting for the next one!
-with open("state_rwd_action.pkl", "wb") as f:
+with open("data/state_rwd_action.pkl", "wb") as f:
     pickle.dump(data, f)
 
 cv2.destroyAllWindows()
