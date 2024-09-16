@@ -9,6 +9,7 @@ from sc2.player import (
     Computer,
 )  # wrapper for whether or not the agent is one of your bots, or a "computer" player
 from sc2 import maps  # maps method for loading maps to play in.
+from sc2.unit import Unit
 from sc2.ids.unit_typeid import UnitTypeId
 import random
 import cv2
@@ -33,6 +34,22 @@ step_punishment = ((np.exp(steps_for_pun**3) / 10) - 0.1) * 10
 
 
 class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
+
+    async def handle_depot_height(self):
+        # Raise depos when enemies are nearby
+        for depo in self.structures(UnitTypeId.SUPPLYDEPOTLOWERED).ready:
+            for unit in self.enemy_units:
+                if unit.position.to2.distance_to(depo.position.to2) < 10:
+                    depo(AbilityId.MORPH_SUPPLYDEPOT_RAISE)
+
+        # Lower depos when no enemies are nearby
+        for depo in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
+            for unit in self.enemy_units:
+                if unit.position.to2.distance_to(depo.position.to2) < 15:
+                    break
+            else:
+                depo(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
+
     async def on_step(
         self, iteration: int
     ):  # on_step is a method that is called every step of the game.
@@ -50,27 +67,75 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 pass
 
         await self.distribute_workers()  # put idle workers back to work
+        await self.handle_depot_height()  # raise depots when enemy units nearby
 
         action = state_rwd_action["action"]
-        reward = 0
-        print(action)
+        reward = state_rwd_action["reward"] or 0
+
+        max_minerals_left = 0
+
+        latest_cc = None
+        for cc in self.townhalls:
+            mfs = self.mineral_field.closer_than(10, cc)
+            if mfs:
+                minerals_left = sum(map(lambda mf: mf.mineral_contents, mfs))
+                if minerals_left > max_minerals_left:
+                    latest_cc = cc
+
+        if latest_cc is None and self.townhalls:
+            latest_cc == random.choice(self.townhalls)
+
         try:
+            # TODO:
+            # Learn where to position structures
+            # Punish on unit death and structure destroyed
+            # Reward killing enemy unit or structure
+            # Add step to build all units
+            # Upgrades 
+            # Micro (eventually)
             match bot_actions[action]:
                 case Actions.DO_NOTHING:
-                    print("No action")
+                    # Small reward for saving minerals
+                    if self.minerals < 500:
+                        reward += 0.03
+
                 # Build Structures
                 case Actions.BUILD_SUPPLY_DEPOT:
                     if (
-                        self.supply_left < 4 * self.townhalls.amount
+                        self.supply_left < 5 * self.townhalls.amount
                         and self.supply_cap < 200
                         and self.already_pending(UnitTypeId.SUPPLYDEPOT)
                         <= self.townhalls.amount - 1
                         and self.can_afford(UnitTypeId.SUPPLYDEPOT)
                     ):
-                        # TODO wall main ramp
-                        await self.build(
-                            UnitTypeId.SUPPLYDEPOT, near=random.choice(self.townhalls)
-                        )
+                        depot_placement_positions = self.main_base_ramp.corner_depots
+
+                        finished_depots = self.structures(
+                            UnitTypeId.SUPPLYDEPOT
+                        ) | self.structures(UnitTypeId.SUPPLYDEPOTLOWERED)
+
+                        # Filter finish depot locations
+                        if finished_depots:
+                            depot_placement_positions = {
+                                d
+                                for d in depot_placement_positions
+                                if finished_depots.closest_distance_to(d) > 1
+                            }
+
+                        if len(depot_placement_positions) > 0:
+                            target_depot_location = depot_placement_positions.pop()
+                            await self.build(
+                                UnitTypeId.SUPPLYDEPOT, target_depot_location
+                            )
+                        else:
+                            await self.build(UnitTypeId.SUPPLYDEPOT, latest_cc)
+
+                            if self.supply_left > 15:
+                                reward -= 0.03
+                            else:
+                                reward += 0.03
+                    else:
+                        reward -= 0.03
 
                 case Actions.BUILD_GAS:
                     for cc in self.townhalls:
@@ -79,84 +144,130 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                                 2.0, geyser
                             ).exists and self.can_afford(UnitTypeId.ASSIMILATOR):
                                 await self.build(UnitTypeId.ASSIMILATOR, geyser)
+
+                            reward += 0.03
+
                 case Actions.BUILD_CC:
                     if self.already_pending(
                         UnitTypeId.COMMANDCENTER
                     ) == 0 and self.can_afford(UnitTypeId.COMMANDCENTER):
                         await self.expand_now()
+                        reward += 0.1
+
                 case Actions.BUILD_BARRACKS:
                     if self.can_afford(UnitTypeId.BARRACKS):
-                        # TODO wall main ramp
-                        await self.build(
-                            UnitTypeId.BARRACKS, near=random.choice(self.townhalls)
-                        )
+                        if len(self.structures(UnitTypeId.BARRACKS)) == 0:
+                            await self.build(
+                                UnitTypeId.BARRACKS,
+                                self.main_base_ramp.barracks_correct_placement,
+                            )
+                        else:
+                            await self.build(UnitTypeId.BARRACKS, near=latest_cc)
+
+                        # Punish more than 10 barracks
+                        reward += 1 - 0.1 * len(self.structures(UnitTypeId.BARRACKS))
+
                 case Actions.BUILD_GHOST_ACADEMY:
                     if self.can_afford(UnitTypeId.GHOSTACADEMY):
-                        await self.build(
-                            UnitTypeId.GHOSTACADEMY, near=random.choice(self.townhalls)
+                        await self.build(UnitTypeId.GHOSTACADEMY, near=latest_cc)
+
+                        # Punish more than 1 GA
+                        reward += 0.5 - 0.5 * len(
+                            self.structures(UnitTypeId.GHOSTACADEMY)
                         )
+
                 case Actions.BUILD_FACTORY:
                     if self.can_afford(UnitTypeId.FACTORY):
-                        await self.build(
-                            UnitTypeId.FACTORY, near=random.choice(self.townhalls)
-                        )
+                        await self.build(UnitTypeId.FACTORY, near=latest_cc)
+                        # Punish more than 10 factories
+                        reward += 1 - 0.1 * len(self.structures(UnitTypeId.FACTORY))
+
                 case Actions.BUILD_STARPORT:
                     if self.can_afford(UnitTypeId.STARPORT):
-                        await self.build(
-                            UnitTypeId.STARPORT, near=random.choice(self.townhalls)
-                        )
+                        await self.build(UnitTypeId.STARPORT, near=latest_cc)
+
+                        # Punish more than 5 starports
+                        reward += 0.5 - 0.1 * len(self.structures(UnitTypeId.STARPORT))
+
                 case Actions.BUILD_EBAY:
                     if self.can_afford(UnitTypeId.ENGINEERINGBAY):
                         await self.build(
                             UnitTypeId.ENGINEERINGBAY,
-                            near=random.choice(self.townhalls),
+                            near=latest_cc,
                         )
+
+                        # Punish more than 2 ebays
+                        reward += 0.5 - 0.25 * len(
+                            self.structures(UnitTypeId.ENGINEERINGBAY)
+                        )
+
                 case Actions.BUILD_ARMORY:
                     if self.can_afford(UnitTypeId.ARMORY):
-                        await self.build(
-                            UnitTypeId.ARMORY, near=random.choice(self.townhalls)
-                        )
+                        await self.build(UnitTypeId.ARMORY, near=latest_cc)
+
+                        # Punish more than 2 armories
+                        reward += 0.5 - 0.25 * len(self.structures(UnitTypeId.ARMORY))
+
                 case Actions.BUILD_FUSION_CORE:
                     if self.can_afford(UnitTypeId.FUSIONCORE):
-                        await self.build(
-                            UnitTypeId.FUSIONCORE, near=random.choice(self.townhalls)
+                        await self.build(UnitTypeId.FUSIONCORE, near=latest_cc)
+                        # Punish more than 1 FC
+                        reward += 0.5 - 0.5 * len(
+                            self.structures(UnitTypeId.FUSIONCORE)
                         )
+
                 case Actions.BUILD_BUNKER:
                     if self.can_afford(UnitTypeId.BUNKER):
-                        await self.build(
-                            UnitTypeId.BUNKER, near=random.choice(self.townhalls)
+                        await self.build(UnitTypeId.BUNKER, near=latest_cc)
+                        # Aim for 1 bunker per base
+                        reward += 0.25 * len(self.townhalls) - 0.25 * len(
+                            self.structures(UnitTypeId.BUNKER)
                         )
+
                 case Actions.BUILD_TURRET:
                     if self.can_afford(UnitTypeId.MISSILETURRET):
-                        await self.build(
-                            UnitTypeId.MISSILETURRET, near=random.choice(self.townhalls)
+                        await self.build(UnitTypeId.MISSILETURRET, near=latest_cc)
+
+                        # Aim for 2 turrets per base
+                        reward += 0.5 * len(self.townhalls) - 0.25 * len(
+                            self.structures(UnitTypeId.MISSILETURRET)
                         )
+
                 case Actions.BUILD_SENSOR:
                     if self.can_afford(UnitTypeId.SENSORTOWER):
-                        await self.build(
-                            UnitTypeId.SENSORTOWER, near=random.choice(self.townhalls)
+                        await self.build(UnitTypeId.SENSORTOWER, near=latest_cc)
+                        # Aim for 1 sensor per base
+                        reward += 0.25 * len(self.townhalls) - 0.25 * len(
+                            self.structures(UnitTypeId.SENSORTOWER)
                         )
+
                 case Actions.BUILD_ORBITAL:
-                    cc = random.choice(self.townhalls)
+                    cc = random.choice(self.structures(UnitTypeId.COMMANDCENTER))
                     if cc.is_idle and self.can_afford(UnitTypeId.ORBITALCOMMAND):
                         await cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
+                        reward += 0.03
+
                 case Actions.BUILD_PF:
-                    cc = random.choice(self.townhalls)
+                    cc = random.choice(self.structures(UnitTypeId.COMMANDCENTER))
                     if cc.is_idle and self.can_afford(UnitTypeId.PLANETARYFORTRESS):
                         await cc(AbilityId.UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS)
+                        reward += 0.03
 
                 # Train Units
                 case Actions.TRAIN_SCV:
                     for cc in self.townhalls:
+                        if cc.is_idle and self.can_afford(UnitTypeId.SCV):
+                            cc.train(UnitTypeId.SCV)
+                            
                         worker_count = len(self.workers.closer_than(10, cc))
-                        if worker_count < 22:
-                            if cc.is_idle and self.can_afford(UnitTypeId.SCV):
-                                cc.train(UnitTypeId.SCV)
+                        # Aim for 22 scvs per base
+                        reward += -1.1 * len(self.townhalls) + 0.1 * worker_count
+
                 case Actions.TRAIN_MARINE:
                     for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
                         if self.can_afford(UnitTypeId.MARINE):
                             b.train(UnitTypeId.MARINE)
-
+                            reward += 0.05
                 # Scout
                 case Actions.SCOUT:
                     # are there any idle scvs:
@@ -187,10 +298,11 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 # case _:
         except Exception as e:
-            reward -= 0.1
+            reward -= 1
             print(e)
 
-        map = np.zeros(
+        # Prepare observations
+        obvservation = np.zeros(
             (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
         )
 
@@ -200,15 +312,15 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             c = [175, 255, 255]
             fraction = mineral.mineral_contents / 1800
             if mineral.is_visible:
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
             else:
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [20, 75, 50]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [20, 75, 50]
 
         # draw the enemy start location:
         for enemy_start_location in self.enemy_start_locations:
             pos = enemy_start_location
             c = [0, 0, 255]
-            map[math.ceil(pos.y)][math.ceil(pos.x)] = c
+            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = c
 
         # draw the enemy units:
         for enemy_unit in self.enemy_units:
@@ -220,7 +332,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 if enemy_unit.health_max > 0
                 else 0.0001
             )
-            map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
 
         # draw the enemy structures:
         for enemy_structure in self.enemy_structures:
@@ -232,7 +344,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 if enemy_structure.health_max > 0
                 else 0.0001
             )
-            map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
 
         # draw our structures:
         for our_structure in self.structures:
@@ -250,7 +362,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     if our_structure.health_max > 0
                     else 0.0001
                 )
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
 
             else:
                 pos = our_structure.position
@@ -261,7 +373,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     if our_structure.health_max > 0
                     else 0.0001
                 )
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
 
         # draw the vespene geysers:
         for vespene in self.vespene_geyser:
@@ -275,52 +387,37 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             fraction = vespene.vespene_contents / 2250
 
             if vespene.is_visible:
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
             else:
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [50, 20, 75]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [50, 20, 75]
 
         # draw our units:
         for our_unit in self.units:
-            # if it is a voidray:
-            if our_unit.type_id == UnitTypeId.VOIDRAY:
-                pos = our_unit.position
-                c = [255, 75, 75]
-                # get health:
-                fraction = (
-                    our_unit.health / our_unit.health_max
-                    if our_unit.health_max > 0
-                    else 0.0001
-                )
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+            pos = our_unit.position
+            c = [175, 255, 0]
+            # get health:
+            fraction = (
+                our_unit.health / our_unit.health_max
+                if our_unit.health_max > 0
+                else 0.0001
+            )
+            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
 
-            else:
-                pos = our_unit.position
-                c = [175, 255, 0]
-                # get health:
-                fraction = (
-                    our_unit.health / our_unit.health_max
-                    if our_unit.health_max > 0
-                    else 0.0001
-                )
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
-
-        # show map with opencv, resized to be larger:
+        # show obvservation with opencv, resized to be larger:
         # horizontal flip:
         cv2.imshow(
-            "map",
+            "obvservation",
             cv2.flip(
-                cv2.resize(map, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST), 0
+                cv2.resize(obvservation, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST), 0
             ),
         )
         cv2.waitKey(1)
 
         if SAVE_REPLAY:
-            # save map image into "replays dir"
-            cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", map)
+            # save obvservation image into "replays dir"
+            cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", obvservation)
 
         # Reward logic
-        # Get a smaller reward down to negatives each time you build a tech building that already exists
-        #   Not rax, fac, port, cc, depot
         try:
             attack_count = 0
             # iterate through our marines:
@@ -343,7 +440,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         # write the file:
         data = {
-            "state": map,
+            "state": obvservation,
             "reward": reward,
             "action": None,
             "done": False,
@@ -351,6 +448,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         with open("data/state_rwd_action.pkl", "wb") as f:
             pickle.dump(data, f)
+
 
 result = run_multiple_games(
     [
@@ -377,12 +475,9 @@ with open("data/results.txt", "a") as f:
     f.write(f"{result}\n")
 
 
-map = np.zeros(
-            (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
-        )
-observation = map
+obvservation = np.zeros((constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8)
 data = {
-    "state": map,
+    "state": obvservation,
     "reward": rwd,
     "action": None,
     "done": True,

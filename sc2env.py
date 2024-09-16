@@ -45,7 +45,7 @@ class Sc2Env(gymnasium.Env):
                 # print(str(e))
                 pass
 
-        # waits for the new state to return (map and reward) (no new action yet. )
+        # waits for the new state to return (obvservation and reward) (no new action yet. )
         wait_for_state = True
         while wait_for_state:
             try:
@@ -62,14 +62,13 @@ class Sc2Env(gymnasium.Env):
 
             except Exception as e:
                 wait_for_state = True
-                map = np.zeros(
+                obvservation = np.zeros(
                     (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3),
                     dtype=np.uint8,
                 )
-                observation = map
                 # if still failing, input an ACTION, 98 (scout)
                 data = {
-                    "state": map,
+                    "state": obvservation,
                     "reward": 0,
                     "action": 98,
                     "done": False,
@@ -77,7 +76,7 @@ class Sc2Env(gymnasium.Env):
                 with open("data/state_rwd_action.pkl", "wb") as f:
                     pickle.dump(data, f)
 
-                state = map
+                state = obvservation
                 reward = 0
                 done = False
                 action = 98
@@ -95,12 +94,11 @@ class Sc2Env(gymnasium.Env):
 
     def reset(self, seed=int(time.time())):
         print("Resetting environment")
-        map = np.zeros(
+        obvservation = np.zeros(
             (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
         )
-        observation = map
         data = {
-            "state": map,
+            "state": obvservation,
             "reward": 0,
             "action": None,
             "done": False,
@@ -110,4 +108,4 @@ class Sc2Env(gymnasium.Env):
 
         # run bot.py non-blocking:
         subprocess.Popen(["python3", "bot.py"])
-        return observation, None  # reward, done, info can't be included
+        return obvservation, None # reward, done, info can't be included
