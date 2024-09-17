@@ -50,6 +50,36 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             else:
                 depo(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
 
+    async def land_flying_buildings_with_add_on_space(self):
+        # Find new positions for buildings without add on space
+        # Don't land too close to a different add on position unless told to
+        for structure in (
+            self.structures(UnitTypeId.BARRACKSFLYING).idle
+            + self.structures(UnitTypeId.FACTORYFLYING).idle
+            + self.structures(UnitTypeId.STARPORTFLYING).idle
+        ):
+            for placement_step in range(2, 5):
+                new_position = await self.find_placement(
+                    UnitTypeId.BARRACKS,
+                    structure.position,
+                    addon_place=True,
+                    placement_step=placement_step,
+                )
+                if (
+                    new_position is not None
+                    and new_position.distance_to_closest(
+                        map(
+                            lambda addon: addon.add_on_land_position,
+                            self.structures({UnitTypeId.REACTOR, UnitTypeId.TECHLAB}),
+                        )
+                    )
+                    > 3
+                ):
+                    structure(
+                        AbilityId.LAND,
+                        new_position,
+                    )
+
     async def on_step(
         self, iteration: int
     ):  # on_step is a method that is called every step of the game.
@@ -68,6 +98,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         await self.distribute_workers()  # put idle workers back to work
         await self.handle_depot_height()  # raise depots when enemy units nearby
+        await self.land_flying_buildings_with_add_on_space()  # Land flying buildings
 
         action = state_rwd_action["action"]
         reward = state_rwd_action["reward"] or 0
@@ -90,10 +121,10 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # Punish on unit death and structure destroyed
             # Reward killing enemy unit or structure
             # Upgrades
-            # Add ons
             # Punish when picking action bot cannot afford (need to pass building status as part of observation)
             # Learn where to position structures
             # Cast spells
+            # Swap add ons
             # Micro (eventually)
             match bot_actions[action]:
                 case Actions.DO_NOTHING:
@@ -289,6 +320,63 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     if cc.is_idle and self.can_afford(UnitTypeId.PLANETARYFORTRESS):
                         await cc(AbilityId.UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS)
                         reward += 0.03
+
+                # Build Add ons
+                case Actions.BUILD_BARRACKS_TECH_LAB:
+                    for b in self.structures(UnitTypeId.BARRACKS).idle:
+                        if not b.has_add_on and not await self.can_place_single(
+                            UnitTypeId.SUPPLYDEPOT, b.position.offset((2.5, -0.5))
+                        ):
+                            b(AbilityId.LIFT_BARRACKS)
+                        else:
+                            b(AbilityId.BUILD_TECHLAB, queue=True)
+                            break
+
+                case Actions.BUILD_FACTORY_TECH_LAB:
+                    for f in self.structures(UnitTypeId.FACTORY).idle:
+                        if not f.has_add_on and not await self.can_place_single(
+                            UnitTypeId.SUPPLYDEPOT, f.position.offset((2.5, -0.5))
+                        ):
+                            f(AbilityId.LIFT_FACTORY)
+                        else:
+                            f(AbilityId.BUILD_TECHLAB, queue=True)
+
+                case Actions.BUILD_STARPORT_TECH_LAB:
+                    for s in self.structures(UnitTypeId.STARPORT).idle:
+                        if not s.has_add_on and not await self.can_place_single(
+                            UnitTypeId.SUPPLYDEPOT, s.position.offset((2.5, -0.5))
+                        ):
+                            s(AbilityId.LIFT_STARPORT)
+                        else:
+                            s(AbilityId.BUILD_TECHLAB, queue=True)
+
+                case Actions.BUILD_BARRACKS_REACTOR:
+                    for b in self.structures(UnitTypeId.BARRACKS).idle:
+                        if not b.has_add_on and not await self.can_place_single(
+                            UnitTypeId.SUPPLYDEPOT, b.position.offset((2.5, -0.5))
+                        ):
+                            b(AbilityId.LIFT_BARRACKS)
+                        else:
+                            b(AbilityId.BUILD_REACTOR, queue=True)
+                            break
+
+                case Actions.BUILD_FACTORY_REACTOR:
+                    for f in self.structures(UnitTypeId.FACTORY).idle:
+                        if not f.has_add_on and not await self.can_place_single(
+                            UnitTypeId.SUPPLYDEPOT, f.position.offset((2.5, -0.5))
+                        ):
+                            f(AbilityId.LIFT_FACTORY)
+                        else:
+                            f(AbilityId.BUILD_REACTOR, queue=True)
+
+                case Actions.BUILD_STARPORT_REACTOR:
+                    for s in self.structures(UnitTypeId.STARPORT).idle:
+                        if not s.has_add_on and not await self.can_place_single(
+                            UnitTypeId.SUPPLYDEPOT, s.position.offset((2.5, -0.5))
+                        ):
+                            s(AbilityId.LIFT_STARPORT)
+                        else:
+                            s(AbilityId.BUILD_REACTOR, queue=True)
 
                 # Train Units
                 case Actions.TRAIN_SCV:

@@ -21,6 +21,14 @@ class Actions(Enum):
     BUILD_ORBITAL = "build_orbital"
     BUILD_PF = "build_PF"
 
+    # Build add ons
+    BUILD_BARRACKS_TECH_LAB = "build_barracks_tech_lab"
+    BUILD_FACTORY_TECH_LAB = "build_factory_tech_lab"
+    BUILD_STARPORT_TECH_LAB = "build_starport_tech_lab"
+    BUILD_BARRACKS_REACTOR = "build_barracks_reactor"
+    BUILD_FACTORY_REACTOR = "build_factory_reactor"
+    BUILD_STARPORT_REACTOR = "build_starport_reactor"
+
     # Train units
     TRAIN_SCV = "train_scv"
     TRAIN_MARINE = "train_marine"
@@ -69,6 +77,8 @@ bot_actions = [
     Actions.BUILD_SENSOR,
     Actions.BUILD_ORBITAL,
     Actions.BUILD_PF,
+    # Build Add ons
+    
     # Train Units
     Actions.TRAIN_SCV,
     Actions.TRAIN_MARINE,
