@@ -36,6 +36,8 @@ class Actions(Enum):
     UPGRADE_VEHICLE_ARMOUR = "upgrade_vehicle_armour"
     UPGRADE_SHIP_WEAPONS = "upgrade_ship_weapons"
 
+    UPGRADE_BUILDING_ARMOUR = "upgrade_building_armour"
+    UPGRADE_HI_SEC = "upgrade_hi_sec"
     UPGRADE_STIM = "upgrade_stim"
     UPGRADE_COMBAT_SHIELDS = "upgrade_combat_shields"
     UPGRADE_CONCUSSIVE_SHELLS = "upgrade_concussive"
@@ -110,6 +112,8 @@ bot_actions = [
     Actions.UPGRADE_VEHICLE_WEAPONS,
     Actions.UPGRADE_VEHICLE_ARMOUR,
     Actions.UPGRADE_SHIP_WEAPONS,
+    Actions.UPGRADE_BUILDING_ARMOUR,
+    Actions.UPGRADE_HI_SEC,
     Actions.UPGRADE_STIM,
     Actions.UPGRADE_COMBAT_SHIELDS,
     Actions.UPGRADE_CONCUSSIVE_SHELLS,

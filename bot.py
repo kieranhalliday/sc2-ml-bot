@@ -32,6 +32,12 @@ total_steps = 10000
 steps_for_pun = np.linspace(0, 1, total_steps)
 step_punishment = ((np.exp(steps_for_pun**3) / 10) - 0.1) * 10
 
+inf_weapons_level = 0
+inf_armour_level = 0
+vehicle_weapons_level = 0
+vehicle_armour_level = 0
+ships_weapons_level = 0
+
 
 class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
@@ -118,6 +124,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         try:
             # TODO:
+            # Add more information to observation
             # Punish on unit death and structure destroyed: game_state.dead_units
             # Reward killing enemy unit or structure: game_state.dead_units
             # Fusion core upgrades
@@ -379,32 +386,40 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 # Upgrades
                 case Actions.UPGRADE_INF_WEAPONS:
-                    upgrade_level = self.units(
-                        UnitTypeId.MARINE
-                    ).idle.random.attack_upgrade_level
+                    inf_weapons_level = math.floor(
+                        self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYWEAPONSLEVEL1
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYWEAPONSLEVEL2
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYWEAPONSLEVEL3
+                        )
+                    )
 
                     if (
                         self.structures(UnitTypeId.ENGINEERINGBAY).idle
-                        and upgrade_level < 3
+                        and inf_weapons_level < 3
                     ):
                         ebay = self.structures(UnitTypeId.ENGINEERINGBAY).idle.first
                         bio_count = len(self.units(UnitTypeId.MARINE)) + len(
                             self.units(UnitTypeId.MARAUDER)
                         )
 
-                        if upgrade_level == 0:
+                        if inf_weapons_level == 0:
                             ebay.research(
                                 UpgradeId.TERRANINFANTRYWEAPONSLEVEL1,
                                 can_afford_check=True,
                             )
                             reward += 0.002 * bio_count
-                        elif upgrade_level == 1:
+                        elif inf_weapons_level == 1:
                             ebay.research(
                                 UpgradeId.TERRANINFANTRYWEAPONSLEVEL2,
                                 can_afford_check=True,
                             )
                             reward += 0.004 * bio_count
-                        elif upgrade_level == 2:
+                        elif inf_weapons_level == 2:
                             ebay.research(
                                 UpgradeId.TERRANINFANTRYWEAPONSLEVEL3,
                                 can_afford_check=True,
@@ -415,32 +430,40 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward -= 0.005
 
                 case Actions.UPGRADE_INF_ARMOUR:
-                    upgrade_level = self.units(
-                        UnitTypeId.MARINE
-                    ).idle.random.armor_upgrade_level
+                    inf_armour_level = math.floor(
+                        self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYARMORSLEVEL1
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYARMORSLEVEL2
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYARMORSLEVEL3
+                        )
+                    )
 
                     if (
                         self.structures(UnitTypeId.ENGINEERINGBAY).idle
-                        and upgrade_level < 3
+                        and inf_armour_level < 3
                     ):
                         ebay = self.structures(UnitTypeId.ENGINEERINGBAY).idle.first
                         bio_count = len(self.units(UnitTypeId.MARINE)) + len(
                             self.units(UnitTypeId.MARAUDER)
                         )
 
-                        if upgrade_level == 0:
+                        if inf_armour_level == 0:
                             ebay.research(
                                 UpgradeId.TERRANINFANTRYARMORSLEVEL1,
                                 can_afford_check=True,
                             )
                             reward += 0.002 * bio_count
-                        elif upgrade_level == 1:
+                        elif inf_armour_level == 1:
                             ebay.research(
                                 UpgradeId.TERRANINFANTRYARMORSLEVEL2,
                                 can_afford_check=True,
                             )
                             reward += 0.004 * bio_count
-                        elif upgrade_level == 2:
+                        elif inf_armour_level == 2:
                             ebay.research(
                                 UpgradeId.TERRANINFANTRYARMORSLEVEL3,
                                 can_afford_check=True,
@@ -451,18 +474,22 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward -= 0.005
 
                 case Actions.UPGRADE_VEHICLE_WEAPONS:
-                    upgrade_level = (
-                        self.units(UnitTypeId.HELLION).idle.random.attack_upgrade_level
-                        or self.units(
-                            UnitTypeId.CYCLONE
-                        ).idle.random.attack_upgrade_level
-                        or self.units(
-                            UnitTypeId.SIEGETANK
-                        ).idle.random.attack_upgrade_level
-                        or self.units(UnitTypeId.THOR).idle.random.attack_upgrade_level
+                    vehicle_weapons_level = math.floor(
+                        self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYARMORSLEVEL1
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYARMORSLEVEL2
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANINFANTRYARMORSLEVEL3
+                        )
                     )
 
-                    if self.structures(UnitTypeId.ARMORY).idle and upgrade_level < 3:
+                    if (
+                        self.structures(UnitTypeId.ARMORY).idle
+                        and vehicle_weapons_level < 3
+                    ):
                         armory = self.structures(UnitTypeId.ARMORY).idle.first
                         mech_count = (
                             len(self.units(UnitTypeId.HELLION))
@@ -471,19 +498,19 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                             + len(self.units(UnitTypeId.THOR))
                         )
 
-                        if upgrade_level == 0:
+                        if vehicle_weapons_level == 0:
                             armory.research(
                                 UpgradeId.TERRANVEHICLEWEAPONSLEVEL1,
                                 can_afford_check=True,
                             )
                             reward += 0.002 * mech_count
-                        elif upgrade_level == 1:
+                        elif vehicle_weapons_level == 1:
                             armory.research(
                                 UpgradeId.TERRANVEHICLEWEAPONSLEVEL2,
                                 can_afford_check=True,
                             )
                             reward += 0.004 * mech_count
-                        elif upgrade_level == 2:
+                        elif vehicle_weapons_level == 2:
                             armory.research(
                                 UpgradeId.TERRANVEHICLEWEAPONSLEVEL3,
                                 can_afford_check=True,
@@ -493,22 +520,22 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         # Penalty for choosing illegal action
                         reward -= 0.005
                 case Actions.UPGRADE_VEHICLE_ARMOUR:
-                    upgrade_level = (
-                        self.units(UnitTypeId.HELLION).idle.random.armor_upgrade_level
-                        or self.units(
-                            UnitTypeId.CYCLONE
-                        ).idle.random.armor_upgrade_level
-                        or self.units(
-                            UnitTypeId.SIEGETANK
-                        ).idle.random.armor_upgrade_level
-                        or self.units(UnitTypeId.THOR).idle.random.armor_upgrade_level
-                        or self.units(UnitTypeId.VIKING).idle.random.armor_upgrade_level
-                        or self.units(
-                            UnitTypeId.BATTLECRUISER
-                        ).idle.random.armor_upgrade_level
+                    vehicle_armour_level = math.floor(
+                        self.already_pending_upgrade(
+                            UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL1
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL2
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL3
+                        )
                     )
 
-                    if self.structures(UnitTypeId.ARMORY).idle and upgrade_level < 3:
+                    if (
+                        self.structures(UnitTypeId.ARMORY).idle
+                        and vehicle_armour_level < 3
+                    ):
                         armory = self.structures(UnitTypeId.ARMORY).idle.first
                         mech_count = (
                             len(self.units(UnitTypeId.HELLION))
@@ -519,19 +546,19 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                             + len(self.units(UnitTypeId.BATTLECRUISER))
                         )
 
-                        if upgrade_level == 0:
+                        if vehicle_armour_level == 0:
                             armory.research(
                                 UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL1,
                                 can_afford_check=True,
                             )
                             reward += 0.002 * mech_count
-                        elif upgrade_level == 1:
+                        elif vehicle_armour_level == 1:
                             armory.research(
                                 UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL2,
                                 can_afford_check=True,
                             )
                             reward += 0.004 * mech_count
-                        elif upgrade_level == 2:
+                        elif vehicle_armour_level == 2:
                             armory.research(
                                 UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL3,
                                 can_afford_check=True,
@@ -542,32 +569,37 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward -= 0.005
 
                 case Actions.UPGRADE_SHIP_WEAPONS:
-                    upgrade_level = (
-                        self.units(UnitTypeId.VIKING).idle.random.armor_upgrade_level
-                        or self.units(
-                            UnitTypeId.BATTLECRUISER
-                        ).idle.random.armor_upgrade_level
+                    ships_weapons_level = math.floor(
+                        self.already_pending_upgrade(UpgradeId.TERRANSHIPWEAPONSLEVEL1)
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANSHIPWEAPONSLEVEL2
+                        )
+                        + self.already_pending_upgrade(
+                            UpgradeId.TERRANSHIPWEAPONSLEVEL3
+                        )
                     )
-
-                    if self.structures(UnitTypeId.ARMORY).idle and upgrade_level < 3:
+                    if (
+                        self.structures(UnitTypeId.ARMORY).idle
+                        and ships_weapons_level < 3
+                    ):
                         armory = self.structures(UnitTypeId.ARMORY).idle.first
                         mech_count = len(self.units(UnitTypeId.VIKING)) + len(
                             self.units(UnitTypeId.BATTLECRUISER)
                         )
 
-                        if upgrade_level == 0:
+                        if ships_weapons_level == 0:
                             armory.research(
                                 UpgradeId.TERRANSHIPWEAPONSLEVEL1,
                                 can_afford_check=True,
                             )
                             reward += 0.002 * mech_count
-                        elif upgrade_level == 1:
+                        elif ships_weapons_level == 1:
                             armory.research(
                                 UpgradeId.TERRANSHIPWEAPONSLEVEL1,
                                 can_afford_check=True,
                             )
                             reward += 0.004 * mech_count
-                        elif upgrade_level == 2:
+                        elif ships_weapons_level == 2:
                             armory.research(
                                 UpgradeId.TERRANSHIPWEAPONSLEVEL1,
                                 can_afford_check=True,
@@ -576,6 +608,36 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     else:
                         # Penalty for choosing illegal action
                         reward -= 0.005
+                case Actions.UPGRADE_BUILDING_ARMOUR:
+                    if self.structures(
+                        UnitTypeId.ENGINEERINGBAY
+                    ).idle and not self.already_pending_upgrade(
+                        UpgradeId.TERRANBUILDINGARMOR
+                    ):
+                        ebay = self.structures(UnitTypeId.ENGINEERINGBAY).idle.first
+
+                        ebay.research(
+                            UpgradeId.TERRANBUILDINGARMOR,
+                            can_afford_check=True,
+                        )
+                        reward += 0.05
+                    else:
+                        reward -= 0.03
+                case Actions.UPGRADE_HI_SEC:
+                    if self.structures(
+                        UnitTypeId.ENGINEERINGBAY
+                    ).idle and not self.already_pending_upgrade(
+                        UpgradeId.HISECAUTOTRACKING
+                    ):
+                        ebay = self.structures(UnitTypeId.ENGINEERINGBAY).idle.first
+
+                        ebay.research(
+                            UpgradeId.HISECAUTOTRACKING,
+                            can_afford_check=True,
+                        )
+                        reward += 0.05
+                    else:
+                        reward -= 0.03
 
                 case Actions.UPGRADE_STIM:
                     if self.structures(UnitTypeId.BARRACKSTECHLAB).idle:
@@ -944,7 +1006,58 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 int(fraction * i) for i in c
             ]
 
-        
+        # Game state data
+        # draw our minerals
+        c = [255, 255, 255]
+        observation[constants.MAX_MAP_HEIGHT - 1][constants.MAX_MAP_WIDTH - 1] = [
+            min(int(self.minerals / 20), i) for i in c
+        ]
+        # draw our gas
+        observation[constants.MAX_MAP_HEIGHT - 2][constants.MAX_MAP_WIDTH - 2] = [
+            min(int(self.vespene / 20), i) for i in c
+        ]
+        # draw my supply
+        observation[constants.MAX_MAP_HEIGHT - 3][constants.MAX_MAP_WIDTH - 3] = [
+            self.supply_workers,
+            self.supply_army,
+            self.supply_cap,
+        ]
+
+        # draw ebay upgrades x 8
+        upgrade_ids = [
+            UpgradeId.TERRANINFANTRYWEAPONSLEVEL1,
+            UpgradeId.TERRANINFANTRYWEAPONSLEVEL2,
+            UpgradeId.TERRANINFANTRYWEAPONSLEVEL3,
+            UpgradeId.TERRANINFANTRYARMORSLEVEL1,
+            UpgradeId.TERRANINFANTRYARMORSLEVEL2,
+            UpgradeId.TERRANINFANTRYARMORSLEVEL3,
+            UpgradeId.HISECAUTOTRACKING,
+            UpgradeId.TERRANBUILDINGARMOR,
+            UpgradeId.TERRANVEHICLEWEAPONSLEVEL1,
+            UpgradeId.TERRANVEHICLEWEAPONSLEVEL2,
+            UpgradeId.TERRANVEHICLEWEAPONSLEVEL1,
+            UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL1,
+            UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL2,
+            UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL3,
+            UpgradeId.TERRANSHIPWEAPONSLEVEL1,
+            UpgradeId.TERRANSHIPWEAPONSLEVEL2,
+            UpgradeId.TERRANSHIPWEAPONSLEVEL3,
+            UpgradeId.STIMPACK,
+            UpgradeId.COMBATSHIELD,
+            UpgradeId.PUNISHERGRENADES,
+            UpgradeId.INFERNALPREIGNITERS,
+            UpgradeId.HURRICANETHRUSTERS,
+            UpgradeId.DRILLCLAWS,
+            UpgradeId.SMARTSERVOS,
+            UpgradeId.BANSHEECLOAK,
+            UpgradeId.BANSHEESPEED,
+            UpgradeId.INTERFERENCEMATRIX,
+        ]
+        for upgrade_id, index in upgrade_ids:
+            observation[constants.MAX_MAP_HEIGHT - 4 - index][
+                constants.MAX_MAP_WIDTH - 4 - index
+            ] = [int(self.already_pending_upgrade(upgrade_id) * val) for val in c]
+
         # show observation with opencv, resized to be larger:
         # horizontal flip:
         cv2.imshow(
@@ -998,7 +1111,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 result = run_multiple_games(
     [
         GameMatch(
-            maps.get("Oceanborn513AIE"),  # the map we are playing on
+            maps.get("SiteDelta513AIE"),  # the map we are playing on
             [
                 Bot(
                     Race.Terran, TerranBot()
