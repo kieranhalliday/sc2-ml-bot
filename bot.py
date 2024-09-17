@@ -118,10 +118,11 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         try:
             # TODO:
-            # Punish on unit death and structure destroyed
-            # Reward killing enemy unit or structure
+            # Punish on unit death and structure destroyed: game_state.dead_units
+            # Reward killing enemy unit or structure: game_state.dead_units
             # Upgrades
-            # Punish when picking action bot cannot afford (need to pass building status as part of observation)
+            # Tech lab upgrades
+            # Fusion core upgrades
             # Learn where to position structures
             # Cast spells
             # Swap add ons
@@ -377,6 +378,290 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                             s(AbilityId.LIFT_STARPORT)
                         else:
                             s(AbilityId.BUILD_REACTOR, queue=True)
+
+                # Upgrades
+                case Actions.UPGRADE_INF_WEAPONS:
+                    upgrade_level = self.units(
+                        UnitTypeId.MARINE
+                    ).idle.random.attack_upgrade_level
+
+                    if (
+                        self.structures(UnitTypeId.ENGINEERINGBAY).idle
+                        and upgrade_level < 3
+                    ):
+                        ebay = self.structures(UnitTypeId.ENGINEERINGBAY).idle.first
+                        bio_count = len(self.units(UnitTypeId.MARINE)) + len(
+                            self.units(UnitTypeId.MARAUDER)
+                        )
+
+                        if upgrade_level == 0:
+                            ebay.research(
+                                UpgradeId.TERRANINFANTRYWEAPONSLEVEL1,
+                                can_afford_check=True,
+                            )
+                            reward += 0.002 * bio_count
+                        elif upgrade_level == 1:
+                            ebay.research(
+                                UpgradeId.TERRANINFANTRYWEAPONSLEVEL2,
+                                can_afford_check=True,
+                            )
+                            reward += 0.004 * bio_count
+                        elif upgrade_level == 2:
+                            ebay.research(
+                                UpgradeId.TERRANINFANTRYWEAPONSLEVEL3,
+                                can_afford_check=True,
+                            )
+                            reward += 0.006 * bio_count
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
+
+                case Actions.UPGRADE_INF_ARMOUR:
+                    upgrade_level = self.units(
+                        UnitTypeId.MARINE
+                    ).idle.random.armor_upgrade_level
+
+                    if (
+                        self.structures(UnitTypeId.ENGINEERINGBAY).idle
+                        and upgrade_level < 3
+                    ):
+                        ebay = self.structures(UnitTypeId.ENGINEERINGBAY).idle.first
+                        bio_count = len(self.units(UnitTypeId.MARINE)) + len(
+                            self.units(UnitTypeId.MARAUDER)
+                        )
+
+                        if upgrade_level == 0:
+                            ebay.research(
+                                UpgradeId.TERRANINFANTRYARMORSLEVEL1,
+                                can_afford_check=True,
+                            )
+                            reward += 0.002 * bio_count
+                        elif upgrade_level == 1:
+                            ebay.research(
+                                UpgradeId.TERRANINFANTRYARMORSLEVEL2,
+                                can_afford_check=True,
+                            )
+                            reward += 0.004 * bio_count
+                        elif upgrade_level == 2:
+                            ebay.research(
+                                UpgradeId.TERRANINFANTRYARMORSLEVEL3,
+                                can_afford_check=True,
+                            )
+                            reward += 0.006 * bio_count
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
+
+                case Actions.UPGRADE_VEHICLE_WEAPONS:
+                    upgrade_level = (
+                        self.units(
+                            UnitTypeId.HELLION
+                        ).idle.random.attack_upgrade_level
+                        or self.units(
+                            UnitTypeId.CYCLONE
+                        ).idle.random.attack_upgrade_level
+                        or self.units(
+                            UnitTypeId.SIEGETANK
+                        ).idle.random.attack_upgrade_level
+                        or self.units(
+                            UnitTypeId.THOR
+                        ).idle.random.attack_upgrade_level
+                    )
+                    
+                    if self.structures(UnitTypeId.ARMORY).idle and upgrade_level < 3:
+                        armory = self.structures(UnitTypeId.ARMORY).idle.first
+                        mech_count = (
+                            len(self.units(UnitTypeId.HELLION))
+                            + len(self.units(UnitTypeId.CYCLONE))
+                            + len(self.units(UnitTypeId.SIEGETANK))
+                            + len(self.units(UnitTypeId.THOR))
+                        )
+
+                        if upgrade_level == 0:
+                            armory.research(
+                                UpgradeId.TERRANVEHICLEWEAPONSLEVEL1,
+                                can_afford_check=True,
+                            )
+                            reward += 0.002 * mech_count
+                        elif upgrade_level == 1:
+                            armory.research(
+                                UpgradeId.TERRANVEHICLEWEAPONSLEVEL2,
+                                can_afford_check=True,
+                            )
+                            reward += 0.004 * mech_count
+                        elif upgrade_level == 2:
+                            armory.research(
+                                UpgradeId.TERRANVEHICLEWEAPONSLEVEL3,
+                                can_afford_check=True,
+                            )
+                            reward += 0.006 * mech_count
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
+                case Actions.UPGRADE_VEHICLE_ARMOUR:
+                    upgrade_level = (
+                        self.units(
+                            UnitTypeId.HELLION
+                        ).idle.random.armor_upgrade_level
+                        or self.units(
+                            UnitTypeId.CYCLONE
+                        ).idle.random.armor_upgrade_level
+                        or self.units(
+                            UnitTypeId.SIEGETANK
+                        ).idle.random.armor_upgrade_level
+                        or self.units(
+                            UnitTypeId.THOR
+                        ).idle.random.armor_upgrade_level
+                        or self.units(
+                            UnitTypeId.VIKING
+                        ).idle.random.armor_upgrade_level
+                        or self.units(
+                            UnitTypeId.BATTLECRUISER
+                        ).idle.random.armor_upgrade_level
+                    )
+
+                    if self.structures(UnitTypeId.ARMORY).idle and upgrade_level < 3:
+                        armory = self.structures(UnitTypeId.ARMORY).idle.first
+                        mech_count = (
+                            len(self.units(UnitTypeId.HELLION))
+                            + len(self.units(UnitTypeId.CYCLONE))
+                            + len(self.units(UnitTypeId.SIEGETANK))
+                            + len(self.units(UnitTypeId.THOR))
+                            + len(self.units(UnitTypeId.VIKING))
+                            + len(self.units(UnitTypeId.BATTLECRUISER))
+                        )
+
+                        if upgrade_level == 0:
+                            armory.research(
+                                UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL1,
+                                can_afford_check=True,
+                            )
+                            reward += 0.002 * mech_count
+                        elif upgrade_level == 1:
+                            armory.research(
+                                UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL2,
+                                can_afford_check=True,
+                            )
+                            reward += 0.004 * mech_count
+                        elif upgrade_level == 2:
+                            armory.research(
+                                UpgradeId.TERRANVEHICLEANDSHIPARMORSLEVEL3,
+                                can_afford_check=True,
+                            )
+                            reward += 0.006 * mech_count
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
+
+                case Actions.UPGRADE_SHIP_WEAPONS:
+                    upgrade_level = (
+                        self.units(
+                            UnitTypeId.VIKING
+                        ).idle.random.armor_upgrade_level
+                        or self.units(
+                            UnitTypeId.BATTLECRUISER
+                        ).idle.random.armor_upgrade_level
+                    )
+
+                    if self.structures(UnitTypeId.ARMORY).idle and upgrade_level < 3:
+                        armory = self.structures(UnitTypeId.ARMORY).idle.first
+                        mech_count = len(self.units(UnitTypeId.VIKING)) + len(self.units(UnitTypeId.BATTLECRUISER))
+
+                        if upgrade_level == 0:
+                            armory.research(
+                                UpgradeId.TERRANSHIPWEAPONSLEVEL1,
+                                can_afford_check=True,
+                            )
+                            reward += 0.002 * mech_count
+                        elif upgrade_level == 1:
+                            armory.research(
+                                UpgradeId.TERRANSHIPWEAPONSLEVEL1,
+                                can_afford_check=True,
+                            )
+                            reward += 0.004 * mech_count
+                        elif upgrade_level == 2:
+                            armory.research(
+                                UpgradeId.TERRANSHIPWEAPONSLEVEL1,
+                                can_afford_check=True,
+                            )
+                            reward += 0.006 * mech_count
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
+                        
+                case Actions.UPGRADE_STIM:
+                    if self.structures(UnitTypeId.BARRACKSTECHLAB).idle:
+                        tech_lab = self.structures(UnitTypeId.BARRACKSTECHLAB).idle.first
+                        if not self.already_pending(AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK):
+                            tech_lab(
+                                AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK, can_afford_check=True
+                            )
+                            reward += 0.5
+
+                case Actions.UPGRADE_COMBAT_SHIELDS:
+                    if self.structures(UnitTypeId.BARRACKSTECHLAB).idle:
+                        tech_lab = self.structures(UnitTypeId.BARRACKSTECHLAB).idle.first
+                        if not self.already_pending(AbilityId.RESEARCH_COMBATSHIELD):
+                            tech_lab(
+                                AbilityId.RESEARCH_COMBATSHIELD, can_afford_check=True
+                            )
+                            reward += 0.25
+
+                case Actions.UPGRADE_CONCUSSIVE_SHELLS:
+                    if self.structures(UnitTypeId.BARRACKSTECHLAB).idle:
+                        tech_lab = self.structures(UnitTypeId.BARRACKSTECHLAB).idle.first
+                        if not self.already_pending(AbilityId.RESEARCH_CONCUSSIVESHELLS):
+                            tech_lab(
+                                AbilityId.RESEARCH_CONCUSSIVESHELLS, can_afford_check=True
+                            )
+                            reward += 0.25
+
+                case Actions.UPGRADE_PRE_IGNITER:
+                    if self.structures(UnitTypeId.FACTORYTECHLAB).idle:
+                        tech_lab = self.structures(UnitTypeId.FACTORYTECHLAB).idle.first
+                        if not self.already_pending_upgrade(UpgradeId.INFERNALPREIGNITERS):
+                            tech_lab.research(UpgradeId.INFERNALPREIGNITERS, can_afford_check=True)
+                            reward += 0.1
+
+                case Actions.UPGRADE_HURRICANE_ENGINES:
+                    if self.structures(UnitTypeId.FACTORYTECHLAB).idle:
+                        tech_lab = self.structures(UnitTypeId.FACTORYTECHLAB).idle.first
+                        if not self.already_pending_upgrade(UpgradeId.HURRICANETHRUSTERS):
+                            tech_lab.research(UpgradeId.HURRICANETHRUSTERS, can_afford_check=True)
+                            reward += 0.1
+                            
+                case Actions.UPGRADE_DRILLING_CLAWS:
+                    if self.structures(UnitTypeId.FACTORYTECHLAB).idle:
+                        tech_lab = self.structures(UnitTypeId.FACTORYTECHLAB).idle.first
+                        if not self.already_pending_upgrade(UpgradeId.DRILLCLAWS):
+                            tech_lab.research(UpgradeId.DRILLCLAWS, can_afford_check=True)
+                            reward += 0.1
+
+                case Actions.UPGRADE_SMART_SERVOS:
+                    if self.structures(UnitTypeId.FACTORYTECHLAB).idle:
+                        tech_lab = self.structures(UnitTypeId.FACTORYTECHLAB).idle.first
+                        if not self.already_pending_upgrade(UpgradeId.SMARTSERVOS):
+                            tech_lab.research(UpgradeId.SMARTSERVOS, can_afford_check=True)
+                            reward += 0.1
+
+                case Actions.UPGRADE_BANSHEE_CLOAK:
+                    if self.structures(UnitTypeId.STARPORT).idle:
+                        tech_lab = self.structures(UnitTypeId.STARPORTTECHLAB).idle.first
+                        if not self.already_pending_upgrade(UpgradeId.BANSHEECLOAK):
+                            tech_lab.research(UpgradeId.BANSHEECLOAK, can_afford_check=True)
+                            reward += 0.1
+                case Actions.UPGRADE_HYPERFLIGHT:
+                    if self.structures(UnitTypeId.STARPORT).idle:
+                        tech_lab = self.structures(UnitTypeId.STARPORTTECHLAB).idle.first
+                        if not self.already_pending_upgrade(UpgradeId.BANSHEESPEED):
+                            tech_lab.research(UpgradeId.BANSHEESPEED, can_afford_check=True)
+                            reward += 0.1
+                case Actions.UPGRADE_INTERFERENCE:
+                    if self.structures(UnitTypeId.STARPORT).idle:
+                        tech_lab = self.structures(UnitTypeId.STARPORTTECHLAB).idle.first
+                        if not self.already_pending_upgrade(UpgradeId.INTERFERENCEMATRIX):
+                            tech_lab.research(UpgradeId.INTERFERENCEMATRIX, can_afford_check=True)
+                            reward += 0.25
 
                 # Train Units
                 case Actions.TRAIN_SCV:

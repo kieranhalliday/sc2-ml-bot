@@ -29,6 +29,26 @@ class Actions(Enum):
     BUILD_FACTORY_REACTOR = "build_factory_reactor"
     BUILD_STARPORT_REACTOR = "build_starport_reactor"
 
+    # Upgrades
+    UPGRADE_INF_WEAPONS = "upgrade_inf_weapons"
+    UPGRADE_INF_ARMOUR = "upgrade_inf_armour"
+    UPGRADE_VEHICLE_WEAPONS = "upgrade_vehicle_weapons"
+    UPGRADE_VEHICLE_ARMOUR = "upgrade_vehicle_armour"
+    UPGRADE_SHIP_WEAPONS = "upgrade_ship_weapons"
+
+    UPGRADE_STIM = "upgrade_stim"
+    UPGRADE_COMBAT_SHIELDS = "upgrade_combat_shields"
+    UPGRADE_CONCUSSIVE_SHELLS = "upgrade_concussive"
+
+    UPGRADE_PRE_IGNITER = "upgrade_pre_igniter"
+    UPGRADE_HURRICANE_ENGINES = "upgrade_hurricane_engines"
+    UPGRADE_DRILLING_CLAWS = "upgrade_drilling_claws"
+    UPGRADE_SMART_SERVOS = "upgrade_servos"
+
+    UPGRADE_BANSHEE_CLOAK = "upgrade_bashee_cloak"
+    UPGRADE_HYPERFLIGHT = "upgrade_hyperflight"
+    UPGRADE_INTERFERENCE = "upgrade_interference"
+
     # Train units
     TRAIN_SCV = "train_scv"
     TRAIN_MARINE = "train_marine"
@@ -78,7 +98,28 @@ bot_actions = [
     Actions.BUILD_ORBITAL,
     Actions.BUILD_PF,
     # Build Add ons
-    
+    Actions.BUILD_BARRACKS_TECH_LAB,
+    Actions.BUILD_FACTORY_TECH_LAB,
+    Actions.BUILD_STARPORT_TECH_LAB,
+    Actions.BUILD_BARRACKS_REACTOR,
+    Actions.BUILD_FACTORY_REACTOR,
+    Actions.BUILD_STARPORT_REACTOR,
+    # Upgrades
+    Actions.UPGRADE_INF_WEAPONS,
+    Actions.UPGRADE_INF_ARMOUR,
+    Actions.UPGRADE_VEHICLE_WEAPONS,
+    Actions.UPGRADE_VEHICLE_ARMOUR,
+    Actions.UPGRADE_SHIP_WEAPONS,
+    Actions.UPGRADE_STIM,
+    Actions.UPGRADE_COMBAT_SHIELDS,
+    Actions.UPGRADE_CONCUSSIVE_SHELLS,
+    Actions.UPGRADE_PRE_IGNITER,
+    Actions.UPGRADE_HURRICANE_ENGINES,
+    Actions.UPGRADE_DRILLING_CLAWS,
+    Actions.UPGRADE_SMART_SERVOS,
+    Actions.UPGRADE_BANSHEE_CLOAK,
+    Actions.UPGRADE_HYPERFLIGHT,
+    Actions.UPGRADE_INTERFERENCE,
     # Train Units
     Actions.TRAIN_SCV,
     Actions.TRAIN_MARINE,
