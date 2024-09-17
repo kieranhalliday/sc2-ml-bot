@@ -22,7 +22,7 @@ class Sc2Env(gymnasium.Env):
         self.observation_space = spaces.Box(
             low=0,
             high=255,
-            shape=(constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3),
+            shape=(3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH),
             dtype=np.uint8,
         )
 
@@ -45,7 +45,7 @@ class Sc2Env(gymnasium.Env):
                 # print(str(e))
                 pass
 
-        # waits for the new state to return (obvservation and reward) (no new action yet. )
+        # waits for the new state to return (observation and reward) (no new action yet. )
         wait_for_state = True
         while wait_for_state:
             try:
@@ -62,13 +62,13 @@ class Sc2Env(gymnasium.Env):
 
             except Exception as e:
                 wait_for_state = True
-                obvservation = np.zeros(
-                    (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3),
+                observation = np.zeros(
+                    (3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH),
                     dtype=np.uint8,
                 )
                 # if still failing, input an ACTION, 98 (scout)
                 data = {
-                    "state": obvservation,
+                    "state": observation,
                     "reward": 0,
                     "action": 98,
                     "done": False,
@@ -76,7 +76,7 @@ class Sc2Env(gymnasium.Env):
                 with open("data/state_rwd_action.pkl", "wb") as f:
                     pickle.dump(data, f)
 
-                state = obvservation
+                state = observation
                 reward = 0
                 done = False
                 action = 98
@@ -94,11 +94,11 @@ class Sc2Env(gymnasium.Env):
 
     def reset(self, seed=int(time.time())):
         print("Resetting environment")
-        obvservation = np.zeros(
-            (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
+        observation = np.zeros(
+            (3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH), dtype=np.uint8
         )
         data = {
-            "state": obvservation,
+            "state": observation,
             "reward": 0,
             "action": None,
             "done": False,
@@ -108,4 +108,4 @@ class Sc2Env(gymnasium.Env):
 
         # run bot.py non-blocking:
         subprocess.Popen(["python3", "bot.py"])
-        return obvservation, None # reward, done, info can't be included
+        return observation, None # reward, done, info can't be included

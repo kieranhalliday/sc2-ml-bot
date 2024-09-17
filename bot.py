@@ -120,8 +120,6 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # TODO:
             # Punish on unit death and structure destroyed: game_state.dead_units
             # Reward killing enemy unit or structure: game_state.dead_units
-            # Upgrades
-            # Tech lab upgrades
             # Fusion core upgrades
             # Learn where to position structures
             # Cast spells
@@ -831,8 +829,8 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             print(e)
 
         # Prepare observations
-        obvservation = np.zeros(
-            (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
+        observation = np.zeros(
+            (3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH), dtype=np.uint8
         )
 
         # draw the minerals:
@@ -841,17 +839,17 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             c = [175, 255, 255]
             fraction = mineral.mineral_contents / 1800
             if mineral.is_visible:
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                observation[math.ceil(pos.y)][math.ceil(pos.x)] = [
                     int(fraction * i) for i in c
                 ]
             else:
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [20, 75, 50]
+                observation[math.ceil(pos.y)][math.ceil(pos.x)] = [20, 75, 50]
 
         # draw the enemy start location:
         for enemy_start_location in self.enemy_start_locations:
             pos = enemy_start_location
             c = [0, 0, 255]
-            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = c
+            observation[math.ceil(pos.y)][math.ceil(pos.x)] = c
 
         # draw the enemy units:
         for enemy_unit in self.enemy_units:
@@ -863,7 +861,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 if enemy_unit.health_max > 0
                 else 0.0001
             )
-            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+            observation[math.ceil(pos.y)][math.ceil(pos.x)] = [
                 int(fraction * i) for i in c
             ]
 
@@ -877,7 +875,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 if enemy_structure.health_max > 0
                 else 0.0001
             )
-            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+            observation[math.ceil(pos.y)][math.ceil(pos.x)] = [
                 int(fraction * i) for i in c
             ]
 
@@ -897,7 +895,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     if our_structure.health_max > 0
                     else 0.0001
                 )
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                observation[math.ceil(pos.y)][math.ceil(pos.x)] = [
                     int(fraction * i) for i in c
                 ]
 
@@ -910,7 +908,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     if our_structure.health_max > 0
                     else 0.0001
                 )
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                observation[math.ceil(pos.y)][math.ceil(pos.x)] = [
                     int(fraction * i) for i in c
                 ]
 
@@ -926,11 +924,11 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             fraction = vespene.vespene_contents / 2250
 
             if vespene.is_visible:
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                observation[math.ceil(pos.y)][math.ceil(pos.x)] = [
                     int(fraction * i) for i in c
                 ]
             else:
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [50, 20, 75]
+                observation[math.ceil(pos.y)][math.ceil(pos.x)] = [50, 20, 75]
 
         # draw our units:
         for our_unit in self.units:
@@ -942,17 +940,18 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 if our_unit.health_max > 0
                 else 0.0001
             )
-            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+            observation[math.ceil(pos.y)][math.ceil(pos.x)] = [
                 int(fraction * i) for i in c
             ]
 
-        # show obvservation with opencv, resized to be larger:
+        
+        # show observation with opencv, resized to be larger:
         # horizontal flip:
         cv2.imshow(
-            "obvservation",
+            "observation",
             cv2.flip(
                 cv2.resize(
-                    obvservation, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST
+                    observation, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST
                 ),
                 0,
             ),
@@ -960,8 +959,8 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
         cv2.waitKey(1)
 
         if SAVE_REPLAY:
-            # save obvservation image into "replays dir"
-            cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", obvservation)
+            # save observation image into "replays dir"
+            cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", observation)
 
         # Reward logic
         try:
@@ -986,7 +985,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         # write the file:
         data = {
-            "state": obvservation,
+            "state": observation,
             "reward": reward,
             "action": None,
             "done": False,
@@ -1021,11 +1020,11 @@ with open("data/results.txt", "a") as f:
     f.write(f"{result}\n")
 
 
-obvservation = np.zeros(
-    (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
+observation = np.zeros(
+    (3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH), dtype=np.uint8
 )
 data = {
-    "state": obvservation,
+    "state": observation,
     "reward": rwd,
     "action": None,
     "done": True,
