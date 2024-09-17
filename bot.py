@@ -454,20 +454,16 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.UPGRADE_VEHICLE_WEAPONS:
                     upgrade_level = (
-                        self.units(
-                            UnitTypeId.HELLION
-                        ).idle.random.attack_upgrade_level
+                        self.units(UnitTypeId.HELLION).idle.random.attack_upgrade_level
                         or self.units(
                             UnitTypeId.CYCLONE
                         ).idle.random.attack_upgrade_level
                         or self.units(
                             UnitTypeId.SIEGETANK
                         ).idle.random.attack_upgrade_level
-                        or self.units(
-                            UnitTypeId.THOR
-                        ).idle.random.attack_upgrade_level
+                        or self.units(UnitTypeId.THOR).idle.random.attack_upgrade_level
                     )
-                    
+
                     if self.structures(UnitTypeId.ARMORY).idle and upgrade_level < 3:
                         armory = self.structures(UnitTypeId.ARMORY).idle.first
                         mech_count = (
@@ -500,21 +496,15 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward -= 0.005
                 case Actions.UPGRADE_VEHICLE_ARMOUR:
                     upgrade_level = (
-                        self.units(
-                            UnitTypeId.HELLION
-                        ).idle.random.armor_upgrade_level
+                        self.units(UnitTypeId.HELLION).idle.random.armor_upgrade_level
                         or self.units(
                             UnitTypeId.CYCLONE
                         ).idle.random.armor_upgrade_level
                         or self.units(
                             UnitTypeId.SIEGETANK
                         ).idle.random.armor_upgrade_level
-                        or self.units(
-                            UnitTypeId.THOR
-                        ).idle.random.armor_upgrade_level
-                        or self.units(
-                            UnitTypeId.VIKING
-                        ).idle.random.armor_upgrade_level
+                        or self.units(UnitTypeId.THOR).idle.random.armor_upgrade_level
+                        or self.units(UnitTypeId.VIKING).idle.random.armor_upgrade_level
                         or self.units(
                             UnitTypeId.BATTLECRUISER
                         ).idle.random.armor_upgrade_level
@@ -555,9 +545,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.UPGRADE_SHIP_WEAPONS:
                     upgrade_level = (
-                        self.units(
-                            UnitTypeId.VIKING
-                        ).idle.random.armor_upgrade_level
+                        self.units(UnitTypeId.VIKING).idle.random.armor_upgrade_level
                         or self.units(
                             UnitTypeId.BATTLECRUISER
                         ).idle.random.armor_upgrade_level
@@ -565,7 +553,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                     if self.structures(UnitTypeId.ARMORY).idle and upgrade_level < 3:
                         armory = self.structures(UnitTypeId.ARMORY).idle.first
-                        mech_count = len(self.units(UnitTypeId.VIKING)) + len(self.units(UnitTypeId.BATTLECRUISER))
+                        mech_count = len(self.units(UnitTypeId.VIKING)) + len(
+                            self.units(UnitTypeId.BATTLECRUISER)
+                        )
 
                         if upgrade_level == 0:
                             armory.research(
@@ -588,19 +578,26 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     else:
                         # Penalty for choosing illegal action
                         reward -= 0.005
-                        
+
                 case Actions.UPGRADE_STIM:
                     if self.structures(UnitTypeId.BARRACKSTECHLAB).idle:
-                        tech_lab = self.structures(UnitTypeId.BARRACKSTECHLAB).idle.first
-                        if not self.already_pending(AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK):
+                        tech_lab = self.structures(
+                            UnitTypeId.BARRACKSTECHLAB
+                        ).idle.first
+                        if not self.already_pending(
+                            AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK
+                        ):
                             tech_lab(
-                                AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK, can_afford_check=True
+                                AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK,
+                                can_afford_check=True,
                             )
                             reward += 0.5
 
                 case Actions.UPGRADE_COMBAT_SHIELDS:
                     if self.structures(UnitTypeId.BARRACKSTECHLAB).idle:
-                        tech_lab = self.structures(UnitTypeId.BARRACKSTECHLAB).idle.first
+                        tech_lab = self.structures(
+                            UnitTypeId.BARRACKSTECHLAB
+                        ).idle.first
                         if not self.already_pending(AbilityId.RESEARCH_COMBATSHIELD):
                             tech_lab(
                                 AbilityId.RESEARCH_COMBATSHIELD, can_afford_check=True
@@ -609,58 +606,89 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.UPGRADE_CONCUSSIVE_SHELLS:
                     if self.structures(UnitTypeId.BARRACKSTECHLAB).idle:
-                        tech_lab = self.structures(UnitTypeId.BARRACKSTECHLAB).idle.first
-                        if not self.already_pending(AbilityId.RESEARCH_CONCUSSIVESHELLS):
+                        tech_lab = self.structures(
+                            UnitTypeId.BARRACKSTECHLAB
+                        ).idle.first
+                        if not self.already_pending(
+                            AbilityId.RESEARCH_CONCUSSIVESHELLS
+                        ):
                             tech_lab(
-                                AbilityId.RESEARCH_CONCUSSIVESHELLS, can_afford_check=True
+                                AbilityId.RESEARCH_CONCUSSIVESHELLS,
+                                can_afford_check=True,
                             )
                             reward += 0.25
 
                 case Actions.UPGRADE_PRE_IGNITER:
                     if self.structures(UnitTypeId.FACTORYTECHLAB).idle:
                         tech_lab = self.structures(UnitTypeId.FACTORYTECHLAB).idle.first
-                        if not self.already_pending_upgrade(UpgradeId.INFERNALPREIGNITERS):
-                            tech_lab.research(UpgradeId.INFERNALPREIGNITERS, can_afford_check=True)
+                        if not self.already_pending_upgrade(
+                            UpgradeId.INFERNALPREIGNITERS
+                        ):
+                            tech_lab.research(
+                                UpgradeId.INFERNALPREIGNITERS, can_afford_check=True
+                            )
                             reward += 0.1
 
                 case Actions.UPGRADE_HURRICANE_ENGINES:
                     if self.structures(UnitTypeId.FACTORYTECHLAB).idle:
                         tech_lab = self.structures(UnitTypeId.FACTORYTECHLAB).idle.first
-                        if not self.already_pending_upgrade(UpgradeId.HURRICANETHRUSTERS):
-                            tech_lab.research(UpgradeId.HURRICANETHRUSTERS, can_afford_check=True)
+                        if not self.already_pending_upgrade(
+                            UpgradeId.HURRICANETHRUSTERS
+                        ):
+                            tech_lab.research(
+                                UpgradeId.HURRICANETHRUSTERS, can_afford_check=True
+                            )
                             reward += 0.1
-                            
+
                 case Actions.UPGRADE_DRILLING_CLAWS:
                     if self.structures(UnitTypeId.FACTORYTECHLAB).idle:
                         tech_lab = self.structures(UnitTypeId.FACTORYTECHLAB).idle.first
                         if not self.already_pending_upgrade(UpgradeId.DRILLCLAWS):
-                            tech_lab.research(UpgradeId.DRILLCLAWS, can_afford_check=True)
+                            tech_lab.research(
+                                UpgradeId.DRILLCLAWS, can_afford_check=True
+                            )
                             reward += 0.1
 
                 case Actions.UPGRADE_SMART_SERVOS:
                     if self.structures(UnitTypeId.FACTORYTECHLAB).idle:
                         tech_lab = self.structures(UnitTypeId.FACTORYTECHLAB).idle.first
                         if not self.already_pending_upgrade(UpgradeId.SMARTSERVOS):
-                            tech_lab.research(UpgradeId.SMARTSERVOS, can_afford_check=True)
+                            tech_lab.research(
+                                UpgradeId.SMARTSERVOS, can_afford_check=True
+                            )
                             reward += 0.1
 
                 case Actions.UPGRADE_BANSHEE_CLOAK:
                     if self.structures(UnitTypeId.STARPORT).idle:
-                        tech_lab = self.structures(UnitTypeId.STARPORTTECHLAB).idle.first
+                        tech_lab = self.structures(
+                            UnitTypeId.STARPORTTECHLAB
+                        ).idle.first
                         if not self.already_pending_upgrade(UpgradeId.BANSHEECLOAK):
-                            tech_lab.research(UpgradeId.BANSHEECLOAK, can_afford_check=True)
+                            tech_lab.research(
+                                UpgradeId.BANSHEECLOAK, can_afford_check=True
+                            )
                             reward += 0.1
                 case Actions.UPGRADE_HYPERFLIGHT:
                     if self.structures(UnitTypeId.STARPORT).idle:
-                        tech_lab = self.structures(UnitTypeId.STARPORTTECHLAB).idle.first
+                        tech_lab = self.structures(
+                            UnitTypeId.STARPORTTECHLAB
+                        ).idle.first
                         if not self.already_pending_upgrade(UpgradeId.BANSHEESPEED):
-                            tech_lab.research(UpgradeId.BANSHEESPEED, can_afford_check=True)
+                            tech_lab.research(
+                                UpgradeId.BANSHEESPEED, can_afford_check=True
+                            )
                             reward += 0.1
                 case Actions.UPGRADE_INTERFERENCE:
                     if self.structures(UnitTypeId.STARPORT).idle:
-                        tech_lab = self.structures(UnitTypeId.STARPORTTECHLAB).idle.first
-                        if not self.already_pending_upgrade(UpgradeId.INTERFERENCEMATRIX):
-                            tech_lab.research(UpgradeId.INTERFERENCEMATRIX, can_afford_check=True)
+                        tech_lab = self.structures(
+                            UnitTypeId.STARPORTTECHLAB
+                        ).idle.first
+                        if not self.already_pending_upgrade(
+                            UpgradeId.INTERFERENCEMATRIX
+                        ):
+                            tech_lab.research(
+                                UpgradeId.INTERFERENCEMATRIX, can_afford_check=True
+                            )
                             reward += 0.25
 
                 # Train Units
