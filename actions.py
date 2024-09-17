@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Actions(Enum):
     DO_NOTHING = "do_nothing"
 
@@ -23,17 +24,35 @@ class Actions(Enum):
     # Train units
     TRAIN_SCV = "train_scv"
     TRAIN_MARINE = "train_marine"
-    
+    TRAIN_REAPER = "train_reaper"
+    TRAIN_MARAUDER = "train_marauder"
+    TRAIN_GHOST = "train_ghost"
+
+    TRAIN_HELLION = "train_hellion"
+    TRAIN_HELLBAT = "train_hellbat"
+    TRAIN_MINE = "train_mine"
+    TRAIN_CYCLONE = "train_cyclone"
+    TRAIN_TANK = "train_tank"
+    TRAIN_THOR = "train_thor"
+
+    TRAIN_VIKING = "train_viking"
+    TRAIN_MEDIVAC = "train_medivac"
+    TRAIN_LIBERATOR = "train_liberator"
+    TRAIN_BANSHEE = "train_banshee"
+    TRAIN_RAVEN = "train_raven"
+    TRAIN_BC = "train_bc"
+
     # Orders
     SCOUT = "scout"
     ATTACK = "attack"
 
+    # Morph units hellion, tank, thor, viking, mine
 
+    # CC commands
 
 
 bot_actions = [
     Actions.DO_NOTHING,
-    
     # Build Buildings
     Actions.BUILD_SUPPLY_DEPOT,
     Actions.BUILD_GAS,
@@ -50,12 +69,26 @@ bot_actions = [
     Actions.BUILD_SENSOR,
     Actions.BUILD_ORBITAL,
     Actions.BUILD_PF,
-    
     # Train Units
     Actions.TRAIN_SCV,
     Actions.TRAIN_MARINE,
-    
+    Actions.TRAIN_REAPER,
+    Actions.TRAIN_MARAUDER,
+    Actions.TRAIN_GHOST,
+    # Factory units
+    Actions.TRAIN_HELLION,
+    Actions.TRAIN_MINE,
+    Actions.TRAIN_CYCLONE,
+    Actions.TRAIN_TANK,
+    Actions.TRAIN_THOR,
+    # Starport units
+    Actions.TRAIN_VIKING,
+    Actions.TRAIN_MEDIVAC,
+    Actions.TRAIN_LIBERATOR,
+    Actions.TRAIN_BANSHEE,
+    Actions.TRAIN_RAVEN,
+    Actions.TRAIN_BC,
     # Orders
     Actions.SCOUT,
-    Actions.ATTACK
+    Actions.ATTACK,
 ]

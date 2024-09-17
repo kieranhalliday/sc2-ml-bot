@@ -87,11 +87,13 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         try:
             # TODO:
-            # Learn where to position structures
             # Punish on unit death and structure destroyed
             # Reward killing enemy unit or structure
-            # Add step to build all units
-            # Upgrades 
+            # Upgrades
+            # Add ons
+            # Punish when picking action bot cannot afford (need to pass building status as part of observation)
+            # Learn where to position structures
+            # Cast spells
             # Micro (eventually)
             match bot_actions[action]:
                 case Actions.DO_NOTHING:
@@ -135,7 +137,8 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                             else:
                                 reward += 0.03
                     else:
-                        reward -= 0.03
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_GAS:
                     for cc in self.townhalls:
@@ -144,8 +147,10 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                                 2.0, geyser
                             ).exists and self.can_afford(UnitTypeId.ASSIMILATOR):
                                 await self.build(UnitTypeId.ASSIMILATOR, geyser)
-
-                            reward += 0.03
+                                reward += 0.03
+                            else:
+                                # Penalty for choosing illegal action
+                                reward -= 0.005
 
                 case Actions.BUILD_CC:
                     if self.already_pending(
@@ -153,6 +158,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     ) == 0 and self.can_afford(UnitTypeId.COMMANDCENTER):
                         await self.expand_now()
                         reward += 0.1
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_BARRACKS:
                     if self.can_afford(UnitTypeId.BARRACKS):
@@ -166,6 +174,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                         # Punish more than 10 barracks
                         reward += 1 - 0.1 * len(self.structures(UnitTypeId.BARRACKS))
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_GHOST_ACADEMY:
                     if self.can_afford(UnitTypeId.GHOSTACADEMY):
@@ -175,12 +186,18 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward += 0.5 - 0.5 * len(
                             self.structures(UnitTypeId.GHOSTACADEMY)
                         )
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_FACTORY:
                     if self.can_afford(UnitTypeId.FACTORY):
                         await self.build(UnitTypeId.FACTORY, near=latest_cc)
                         # Punish more than 10 factories
                         reward += 1 - 0.1 * len(self.structures(UnitTypeId.FACTORY))
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_STARPORT:
                     if self.can_afford(UnitTypeId.STARPORT):
@@ -188,6 +205,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                         # Punish more than 5 starports
                         reward += 0.5 - 0.1 * len(self.structures(UnitTypeId.STARPORT))
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_EBAY:
                     if self.can_afford(UnitTypeId.ENGINEERINGBAY):
@@ -195,11 +215,13 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                             UnitTypeId.ENGINEERINGBAY,
                             near=latest_cc,
                         )
-
                         # Punish more than 2 ebays
                         reward += 0.5 - 0.25 * len(
                             self.structures(UnitTypeId.ENGINEERINGBAY)
                         )
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_ARMORY:
                     if self.can_afford(UnitTypeId.ARMORY):
@@ -207,6 +229,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                         # Punish more than 2 armories
                         reward += 0.5 - 0.25 * len(self.structures(UnitTypeId.ARMORY))
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_FUSION_CORE:
                     if self.can_afford(UnitTypeId.FUSIONCORE):
@@ -215,6 +240,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward += 0.5 - 0.5 * len(
                             self.structures(UnitTypeId.FUSIONCORE)
                         )
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_BUNKER:
                     if self.can_afford(UnitTypeId.BUNKER):
@@ -223,6 +251,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward += 0.25 * len(self.townhalls) - 0.25 * len(
                             self.structures(UnitTypeId.BUNKER)
                         )
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_TURRET:
                     if self.can_afford(UnitTypeId.MISSILETURRET):
@@ -232,6 +263,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward += 0.5 * len(self.townhalls) - 0.25 * len(
                             self.structures(UnitTypeId.MISSILETURRET)
                         )
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_SENSOR:
                     if self.can_afford(UnitTypeId.SENSORTOWER):
@@ -240,6 +274,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward += 0.25 * len(self.townhalls) - 0.25 * len(
                             self.structures(UnitTypeId.SENSORTOWER)
                         )
+                    else:
+                        # Penalty for choosing illegal action
+                        reward -= 0.005
 
                 case Actions.BUILD_ORBITAL:
                     cc = random.choice(self.structures(UnitTypeId.COMMANDCENTER))
@@ -258,7 +295,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     for cc in self.townhalls:
                         if cc.is_idle and self.can_afford(UnitTypeId.SCV):
                             cc.train(UnitTypeId.SCV)
-                            
+
                         worker_count = len(self.workers.closer_than(10, cc))
                         # Aim for 22 scvs per base
                         reward += -1.1 * len(self.townhalls) + 0.1 * worker_count
@@ -268,6 +305,97 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         if self.can_afford(UnitTypeId.MARINE):
                             b.train(UnitTypeId.MARINE)
                             reward += 0.05
+
+                case Actions.TRAIN_REAPER:
+                    for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
+                        if self.can_afford(UnitTypeId.REAPER):
+                            b.train(UnitTypeId.REAPER)
+                            reward += 0.01
+
+                case Actions.TRAIN_MARAUDER:
+                    for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
+                        if self.can_afford(UnitTypeId.MARAUDER):
+                            b.train(UnitTypeId.MARAUDER)
+                            reward += 0.05
+
+                case Actions.TRAIN_MARAUDER:
+                    for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
+                        if self.can_afford(UnitTypeId.MARAUDER):
+                            b.train(UnitTypeId.MARAUDER)
+                            reward += 0.05
+
+                case Actions.TRAIN_GHOST:
+                    for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
+                        if self.can_afford(UnitTypeId.GHOST):
+                            b.train(UnitTypeId.GHOST)
+                            reward += 0.1
+
+                case Actions.TRAIN_HELLION:
+                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        if self.can_afford(UnitTypeId.HELLION):
+                            b.train(UnitTypeId.HELLION)
+                            reward += 0.03
+
+                case Actions.TRAIN_MINE:
+                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        if self.can_afford(UnitTypeId.WIDOWMINE):
+                            b.train(UnitTypeId.WIDOWMINE)
+                            reward += 0.03
+
+                case Actions.TRAIN_CYCLONE:
+                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        if self.can_afford(UnitTypeId.CYCLONE):
+                            b.train(UnitTypeId.CYCLONE)
+                            reward += 0.02
+
+                case Actions.TRAIN_TANK:
+                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        if self.can_afford(UnitTypeId.SIEGETANK):
+                            b.train(UnitTypeId.SIEGETANK)
+                            reward += 0.05
+
+                case Actions.TRAIN_THOR:
+                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        if self.can_afford(UnitTypeId.THOR):
+                            b.train(UnitTypeId.THOR)
+                            reward += 0.03
+
+                case Actions.TRAIN_VIKING:
+                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        if self.can_afford(UnitTypeId.VIKING):
+                            b.train(UnitTypeId.VIKING)
+                            reward += 0.03
+
+                case Actions.TRAIN_MEDIVAC:
+                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        if self.can_afford(UnitTypeId.MEDIVAC):
+                            b.train(UnitTypeId.MEDIVAC)
+                            reward += 0.05
+
+                case Actions.TRAIN_LIBERATOR:
+                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        if self.can_afford(UnitTypeId.LIBERATOR):
+                            b.train(UnitTypeId.LIBERATOR)
+                            reward += 0.03
+
+                case Actions.TRAIN_BANSHEE:
+                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        if self.can_afford(UnitTypeId.BANSHEE):
+                            b.train(UnitTypeId.BANSHEE)
+                            reward += 0.02
+
+                case Actions.TRAIN_RAVEN:
+                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        if self.can_afford(UnitTypeId.RAVEN):
+                            b.train(UnitTypeId.RAVEN)
+                            reward += 0.02
+
+                case Actions.TRAIN_BC:
+                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        if self.can_afford(UnitTypeId.BATTLECRUISER):
+                            b.train(UnitTypeId.BATTLECRUISER)
+                            reward += 0.03
+
                 # Scout
                 case Actions.SCOUT:
                     # are there any idle scvs:
@@ -312,7 +440,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             c = [175, 255, 255]
             fraction = mineral.mineral_contents / 1800
             if mineral.is_visible:
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                    int(fraction * i) for i in c
+                ]
             else:
                 obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [20, 75, 50]
 
@@ -332,7 +462,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 if enemy_unit.health_max > 0
                 else 0.0001
             )
-            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                int(fraction * i) for i in c
+            ]
 
         # draw the enemy structures:
         for enemy_structure in self.enemy_structures:
@@ -344,7 +476,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 if enemy_structure.health_max > 0
                 else 0.0001
             )
-            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                int(fraction * i) for i in c
+            ]
 
         # draw our structures:
         for our_structure in self.structures:
@@ -362,7 +496,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     if our_structure.health_max > 0
                     else 0.0001
                 )
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                    int(fraction * i) for i in c
+                ]
 
             else:
                 pos = our_structure.position
@@ -373,7 +509,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     if our_structure.health_max > 0
                     else 0.0001
                 )
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                    int(fraction * i) for i in c
+                ]
 
         # draw the vespene geysers:
         for vespene in self.vespene_geyser:
@@ -387,7 +525,9 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             fraction = vespene.vespene_contents / 2250
 
             if vespene.is_visible:
-                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+                obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                    int(fraction * i) for i in c
+                ]
             else:
                 obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [50, 20, 75]
 
@@ -401,14 +541,19 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 if our_unit.health_max > 0
                 else 0.0001
             )
-            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+            obvservation[math.ceil(pos.y)][math.ceil(pos.x)] = [
+                int(fraction * i) for i in c
+            ]
 
         # show obvservation with opencv, resized to be larger:
         # horizontal flip:
         cv2.imshow(
             "obvservation",
             cv2.flip(
-                cv2.resize(obvservation, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST), 0
+                cv2.resize(
+                    obvservation, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST
+                ),
+                0,
             ),
         )
         cv2.waitKey(1)
@@ -475,7 +620,9 @@ with open("data/results.txt", "a") as f:
     f.write(f"{result}\n")
 
 
-obvservation = np.zeros((constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8)
+obvservation = np.zeros(
+    (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
+)
 data = {
     "state": obvservation,
     "reward": rwd,
