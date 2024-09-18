@@ -22,7 +22,7 @@ class Sc2Env(gymnasium.Env):
         self.observation_space = spaces.Box(
             low=0,
             high=255,
-            shape=(3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH),
+            shape=(constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3),
             dtype=np.uint8,
         )
 
@@ -63,7 +63,7 @@ class Sc2Env(gymnasium.Env):
             except Exception as e:
                 wait_for_state = True
                 observation = np.zeros(
-                    (3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH),
+                    (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3),
                     dtype=np.uint8,
                 )
                 # if still failing, input an ACTION, 98 (scout)
@@ -95,7 +95,7 @@ class Sc2Env(gymnasium.Env):
     def reset(self, seed=int(time.time())):
         print("Resetting environment")
         observation = np.zeros(
-            (3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH), dtype=np.uint8
+            (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
         )
         data = {
             "state": observation,

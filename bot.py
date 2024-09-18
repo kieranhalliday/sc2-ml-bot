@@ -888,11 +888,12 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 # case _:
         except Exception as e:
             reward -= 1
+            print(action)
             print(e)
 
         # Prepare observations
         observation = np.zeros(
-            (3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH), dtype=np.uint8
+            (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
         )
 
         # draw the minerals:
@@ -1043,9 +1044,11 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             UpgradeId.TERRANSHIPWEAPONSLEVEL2,
             UpgradeId.TERRANSHIPWEAPONSLEVEL3,
             UpgradeId.STIMPACK,
-            UpgradeId.COMBATSHIELD,
+            # Combat shield
+            UpgradeId.SHIELDWALL,
             UpgradeId.PUNISHERGRENADES,
-            UpgradeId.INFERNALPREIGNITERS,
+            # Infernal pre-igniter
+            UpgradeId.HIGHCAPACITYBARRELS,
             UpgradeId.HURRICANETHRUSTERS,
             UpgradeId.DRILLCLAWS,
             UpgradeId.SMARTSERVOS,
@@ -1053,7 +1056,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             UpgradeId.BANSHEESPEED,
             UpgradeId.INTERFERENCEMATRIX,
         ]
-        for upgrade_id, index in upgrade_ids:
+        for index, upgrade_id in enumerate(upgrade_ids):
             observation[constants.MAX_MAP_HEIGHT - 4 - index][
                 constants.MAX_MAP_WIDTH - 4 - index
             ] = [int(self.already_pending_upgrade(upgrade_id) * val) for val in c]
@@ -1134,7 +1137,7 @@ with open("data/results.txt", "a") as f:
 
 
 observation = np.zeros(
-    (3, constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH), dtype=np.uint8
+    (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3), dtype=np.uint8
 )
 data = {
     "state": observation,
