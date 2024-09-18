@@ -75,6 +75,7 @@ class Actions(Enum):
     # Orders
     SCOUT = "scout"
     ATTACK = "attack"
+    DEFEND = "defend"
 
     # Morph units hellion, tank, thor, viking, mine
 
@@ -146,4 +147,5 @@ bot_actions = [
     # Orders
     Actions.SCOUT,
     Actions.ATTACK,
+    Actions.DEFEND
 ]

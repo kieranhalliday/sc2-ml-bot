@@ -23,8 +23,9 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.upgrade_id import UpgradeId
 from actions import Actions, bot_actions
 
-from sc2.game_info import GameInfo
+from sc2.game_state import GameState
 import constants
+from micro.micro_bot import MicroBotMixin
 
 SAVE_REPLAY = True
 
@@ -39,7 +40,7 @@ vehicle_armour_level = 0
 ships_weapons_level = 0
 
 
-class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
+class TerranBot(MicroBotMixin):  # inhereits from BotAI (part of BurnySC2)
 
     async def handle_depot_height(self):
         # Raise depos when enemies are nearby
@@ -105,6 +106,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
         await self.distribute_workers()  # put idle workers back to work
         await self.handle_depot_height()  # raise depots when enemy units nearby
         await self.land_flying_buildings_with_add_on_space()  # Land flying buildings
+        await self.on_step_micro(iteration)
 
         action = state_rwd_action["action"]
         reward = state_rwd_action["reward"] or 0
@@ -127,11 +129,15 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # Add more information to observation
             # Punish on unit death and structure destroyed: game_state.dead_units
             # Reward killing enemy unit or structure: game_state.dead_units
+            # Build units on non idle structure with reactor
+            # Land flying buildings
             # Fusion core upgrades
             # Learn where to position structures
             # Cast spells
             # Swap add ons
-            # Micro (eventually)
+            # Repair buildings
+            # orbital actions
+            # react to events (reactive_bot.py)
             match bot_actions[action]:
                 case Actions.DO_NOTHING:
                     # Small reward for saving minerals
@@ -184,7 +190,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                                 2.0, geyser
                             ).exists and self.can_afford(UnitTypeId.ASSIMILATOR):
                                 await self.build(UnitTypeId.ASSIMILATOR, geyser)
-                                reward += 0.03
+                                reward += 0.01
                             else:
                                 # Penalty for choosing illegal action
                                 reward -= 0.005
@@ -194,7 +200,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         UnitTypeId.COMMANDCENTER
                     ) == 0 and self.can_afford(UnitTypeId.COMMANDCENTER):
                         await self.expand_now()
-                        reward += 0.1
+                        reward += 1
                     else:
                         # Penalty for choosing illegal action
                         reward -= 0.005
@@ -253,7 +259,7 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                             near=latest_cc,
                         )
                         # Punish more than 2 ebays
-                        reward += 0.5 - 0.25 * len(
+                        reward += 0.25 - 0.125 * len(
                             self.structures(UnitTypeId.ENGINEERINGBAY)
                         )
                     else:
@@ -316,16 +322,19 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         reward -= 0.005
 
                 case Actions.BUILD_ORBITAL:
-                    cc = random.choice(self.structures(UnitTypeId.COMMANDCENTER))
-                    if cc.is_idle and self.can_afford(UnitTypeId.ORBITALCOMMAND):
-                        await cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
-                        reward += 0.03
+                    ccs = self.structures(UnitTypeId.COMMANDCENTER)
+                    if len(ccs) > 0:
+                        cc = random.choice(ccs)
+                        if cc.is_idle and self.can_afford(UnitTypeId.ORBITALCOMMAND):
+                            cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
+                            reward += 0.05
 
                 case Actions.BUILD_PF:
-                    cc = random.choice(self.structures(UnitTypeId.COMMANDCENTER))
-                    if cc.is_idle and self.can_afford(UnitTypeId.PLANETARYFORTRESS):
-                        await cc(AbilityId.UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS)
-                        reward += 0.03
+                    ccs = self.structures(UnitTypeId.COMMANDCENTER)
+                    if len(ccs) > 0:
+                        if cc.is_idle and self.can_afford(UnitTypeId.PLANETARYFORTRESS):
+                            cc(AbilityId.UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS)
+                            reward += 0.05
 
                 # Build Add ons
                 case Actions.BUILD_BARRACKS_TECH_LAB:
@@ -873,22 +882,16 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 # Attack (known buildings, units, then enemy base)
                 case Actions.ATTACK:
-                    for m in self.units(UnitTypeId.MARINE).idle:
-                        # if we can attack:
-                        if self.enemy_units.closer_than(10, m):
-                            m.attack(
-                                random.choice(
-                                    self.all_enemy_units.closest_to(m.position)
-                                )
-                            )
-                        elif self.enemy_start_locations:
-                            # attack!
-                            m.attack(self.enemy_start_locations[0])
+                    self.set_micro_mode('attack')
+                
+                case Actions.DEFEND:
+                    self.set_micro_mode('defend')
 
                 # case _:
         except Exception as e:
             reward -= 1
-            print(action)
+            # print("action")
+            # print(action)
             print(e)
 
         # Prepare observations
@@ -1023,6 +1026,12 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             self.supply_army,
             self.supply_cap,
         ]
+        # draw enemy faction
+        observation[constants.MAX_MAP_HEIGHT - 4][constants.MAX_MAP_WIDTH - 4] = [
+            Race(self.enemy_race).value,
+            Race(self.enemy_race).value,
+            Race(self.enemy_race).value,
+        ]
 
         # draw ebay upgrades x 8
         upgrade_ids = [
@@ -1057,28 +1066,31 @@ class TerranBot(BotAI):  # inhereits from BotAI (part of BurnySC2)
             UpgradeId.INTERFERENCEMATRIX,
         ]
         for index, upgrade_id in enumerate(upgrade_ids):
-            observation[constants.MAX_MAP_HEIGHT - 4 - index][
-                constants.MAX_MAP_WIDTH - 4 - index
+            observation[constants.MAX_MAP_HEIGHT - 5 - index][
+                constants.MAX_MAP_WIDTH - 5 - index
             ] = [int(self.already_pending_upgrade(upgrade_id) * val) for val in c]
 
         # show observation with opencv, resized to be larger:
         # horizontal flip:
-        cv2.imshow(
-            "observation",
-            cv2.flip(
-                cv2.resize(
-                    observation, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST
-                ),
-                0,
-            ),
-        )
-        cv2.waitKey(1)
+        # Uncomment to show observations on screen
+        # cv2.imshow(
+        #     "observation",
+        #     cv2.flip(
+        #         cv2.resize(
+        #             observation, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST
+        #         ),
+        #         0,
+        #     ),
+        # )
+        # cv2.waitKey(1)
 
         if SAVE_REPLAY:
             # save observation image into "replays dir"
             cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", observation)
 
         # Reward logic
+        # print("Dead Units")
+        # print(GameState.dead_units)
         try:
             attack_count = 0
             # iterate through our marines:

@@ -39,7 +39,7 @@ run = wandb.init(
 
 
 # further train:
-TIMESTEPS = 10000
+TIMESTEPS = 1000
 iters = 0
 while True:
     print("On iteration: ", iters)
