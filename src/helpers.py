@@ -1,4 +1,5 @@
 from typing import Union
+
 from sc2.position import Point2, Point3
 from sc2.unit import Unit
 

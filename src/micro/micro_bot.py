@@ -1,16 +1,17 @@
 import random
 from typing import Literal
-from micro.banshee_micro import BansheeMicroMixin
-from micro.hellion_micro import HellionMicroMixin
-from micro.marine_micro import MarineMicroMixin
-from micro.maurader_micro import MarauderMicroMixin
-from micro.medivac_micro import MedivacMicroMixin
-from micro.raven_micro import RavenMicroMixin
-from micro.reaper_micro import ReaperMicroMixin
-from micro.tank_micro import TankMicroMixin
-from micro.viking_micro import VikingMicroMixin
 
 from sc2.ids.unit_typeid import UnitTypeId
+
+from src.micro.banshee_micro import BansheeMicroMixin
+from src.micro.hellion_micro import HellionMicroMixin
+from src.micro.marine_micro import MarineMicroMixin
+from src.micro.maurader_micro import MarauderMicroMixin
+from src.micro.medivac_micro import MedivacMicroMixin
+from src.micro.raven_micro import RavenMicroMixin
+from src.micro.reaper_micro import ReaperMicroMixin
+from src.micro.tank_micro import TankMicroMixin
+from src.micro.viking_micro import VikingMicroMixin
 
 
 ## Bot to handle micro behaviors

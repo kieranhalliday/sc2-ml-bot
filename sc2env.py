@@ -1,19 +1,20 @@
-import gymnasium
-from gymnasium import spaces
-import numpy as np
-import subprocess
-import pickle
-import time
 import os
-from actions import bot_actions
+import pickle
+import subprocess
+import time
 
-import constants
+import gymnasium
+import numpy as np
+from gymnasium import spaces
+
+import src.constants as constants
+from src.actions import bot_actions
 
 
 class Sc2Env(gymnasium.Env):
     """Custom Environment that follows gym interface"""
 
-    def __init__(self):
+    def __init__(self, training=False):
         super(Sc2Env, self).__init__()
 
         # Define action and observation space
@@ -25,6 +26,7 @@ class Sc2Env(gymnasium.Env):
             shape=(constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3),
             dtype=np.uint8,
         )
+        self.training = training
 
     def step(self, action):
         wait_for_action = True
@@ -66,11 +68,11 @@ class Sc2Env(gymnasium.Env):
                     (constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3),
                     dtype=np.uint8,
                 )
-                # if still failing, input an ACTION, 98 (scout)
+                # if still failing, input an ACTION, scout
                 data = {
                     "state": observation,
                     "reward": 0,
-                    "action": 98,
+                    "action": bot_actions[-1],
                     "done": False,
                 }  # empty action waiting for the next one!
                 with open("data/state_rwd_action.pkl", "wb") as f:
@@ -79,7 +81,7 @@ class Sc2Env(gymnasium.Env):
                 state = observation
                 reward = 0
                 done = False
-                action = 98
+                action = bot_actions[-1]
 
         info = {}
         truncated = {}
@@ -106,6 +108,8 @@ class Sc2Env(gymnasium.Env):
         with open("data/state_rwd_action.pkl", "wb") as f:
             pickle.dump(data, f)
 
-        # run bot.py non-blocking:
-        subprocess.Popen(["python3", "bot.py"])
-        return observation, None # reward, done, info can't be included
+        if self.training:
+            # run run_training_bot.py non-blocking:
+            subprocess.Popen(["python3", "run_training_bot.py"])
+
+        return observation, None  # reward, done, info can't be included

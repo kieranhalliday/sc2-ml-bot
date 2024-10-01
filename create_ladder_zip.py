@@ -2,13 +2,14 @@
 
 import os
 import shutil
-import zipfile
-from typing import Optional
-
-from bot import CompetitiveBot as bot
 
 # Ignore the annoying resource warning from importing sc2 when an SC2 instance isn't running.
 import warnings
+import zipfile
+from typing import Optional
+
+from src.bots.competitive_bot import CompetitiveBot as bot
+
 warnings.simplefilter("ignore", ResourceWarning)
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,20 +23,21 @@ copy_zip_to_folder = "publish"
 # the files to include in the zip file
 files_and_directories_to_zip = [
     "ladderbots.json",  # generated when this script is run
-    "sc2",
-    "bot",
+    "data",
+    "src",
     "requirements.txt",
-    "run.py",
+    "run_bot.py",
 ]
 
 # the template for the ladderbots.json file that will be generated
+# TODO how to call test_model from here to use learned model on ladder
 ladderbots_json_template = """{
     "Bots": {
         "[NAME]": {
             "Race": "[RACE]",
             "Type": "Python",
             "RootPath": "./",
-            "FileName": "run.py",
+            "FileName": "run_bot.py",
             "Args": "-O",
             "Debug": true,
             "SurrenderPhrase": "(pineapple)"

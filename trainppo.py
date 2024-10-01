@@ -1,9 +1,11 @@
-from stable_baselines3 import PPO
 import os
-from sc2env import Sc2Env
 import time
-from wandb.integration.sb3 import WandbCallback
+
 import wandb
+from stable_baselines3 import PPO
+from wandb.integration.sb3 import WandbCallback
+
+from sc2env import Sc2Env
 
 # Create a new model to train
 model_name = f"{int(time.time())}"
@@ -36,7 +38,7 @@ if not os.path.exists(models_dir):
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
-env = Sc2Env()
+env = Sc2Env(training=True)
 
 model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=logdir)
 

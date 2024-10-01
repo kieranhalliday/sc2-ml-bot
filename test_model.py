@@ -1,4 +1,5 @@
 from stable_baselines3 import PPO
+
 from sc2env import Sc2Env
 
 # Play a game with a given model

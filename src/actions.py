@@ -73,14 +73,13 @@ class Actions(Enum):
     TRAIN_BC = "train_bc"
 
     # Orders
-    SCOUT = "scout"
     ATTACK = "attack"
     DEFEND = "defend"
+    SCOUT = "scout"
 
     # Morph units hellion, tank, thor, viking, mine
 
     # CC commands
-
 
 bot_actions = [
     Actions.DO_NOTHING,
@@ -145,7 +144,7 @@ bot_actions = [
     Actions.TRAIN_RAVEN,
     Actions.TRAIN_BC,
     # Orders
-    Actions.SCOUT,
     Actions.ATTACK,
-    Actions.DEFEND
+    Actions.DEFEND,
+    Actions.SCOUT,
 ]

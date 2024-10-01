@@ -1,14 +1,15 @@
-from stable_baselines3 import PPO
-import os
-from sc2env import Sc2Env
 import time
-from wandb.integration.sb3 import WandbCallback
+
 import wandb
+from stable_baselines3 import PPO
+from wandb.integration.sb3 import WandbCallback
+
+from sc2env import Sc2Env
 
 # Continue training an existing model
 LOAD_MODEL = "data/models/1726325503/1000.zip"
 # Environment:
-env = Sc2Env()
+env = Sc2Env(training=True)
 
 # load the model:
 model = PPO.load(LOAD_MODEL, env=env)
@@ -21,8 +22,8 @@ logdir = f"data/logs/{model_name}/"
 
 
 conf_dict = {
-    "Model": "load-v16s",
-    "Machine": "Puget/Desktop/v18/2",
+    "Model": "v19",
+    "Machine": "Main",
     "policy": "MlpPolicy",
     "model_save_name": model_name,
     "load_model": LOAD_MODEL,
