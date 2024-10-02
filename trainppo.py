@@ -42,7 +42,7 @@ env = Sc2Env(training=True)
 
 model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=logdir)
 
-TIMESTEPS = 1000
+TIMESTEPS = 10000
 iters = 0
 while True:
     print("On iteration: ", iters)

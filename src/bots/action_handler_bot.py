@@ -97,11 +97,10 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         try:
             # TODO:
-            # Add more information to observation
             # Punish on unit death and structure destroyed: game_state.dead_units
             # Reward killing enemy unit or structure: game_state.dead_units
             # Learn where to position structures
-            # Cast spells
+            # Finish micro for all units
             # Swap add ons
             # scan invisible units
             # Land flying buildings
