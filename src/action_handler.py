@@ -18,12 +18,6 @@ from src.actions import Actions, bot_actions
 
 SAVE_REPLAY = True
 
-INF_WEAPONS_LEVEL = 0
-INF_ARMOUR_LEVEL = 0
-VEHICLE_WEAPONS_LEVEL = 0
-VEHICLE_ARMOUR_LEVEL = 0
-SHIPS_WEAPONS_LEVEL = 0
-
 
 ## Bot to handle machine learning predictions, actions and rewards
 class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
@@ -102,6 +96,9 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
         for cc in self.townhalls:
             mfs = self.mineral_field.closer_than(10, cc)
             if mfs:
+                mf = max(mfs, key=lambda x: x.mineral_contents)
+                cc(AbilityId.CALLDOWNMULE_CALLDOWNMULE, mf, can_afford_check=True)
+
                 minerals_left = sum(map(lambda mf: mf.mineral_contents, mfs))
                 if minerals_left > max_minerals_left:
                     latest_cc = cc
@@ -117,16 +114,13 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # Learn where to position structures
             # Cast spells
             # Swap add ons
-            # Repair buildings
-            # orbital actions
-            # Prep bot to be called as exec file and zipped for competition and only ran once
-            # react to events (reactive_bot.py)
+            # scan invisible units
             # Leaking thread? client_session: <aiohttp.client.ClientSession object at 0x32107b770>
             match bot_actions[action]:
                 case Actions.DO_NOTHING:
                     # Small reward for saving minerals
                     if self.minerals < 500:
-                        reward += 0.03
+                        reward += 0.05
 
                 # Build Structures
                 case Actions.BUILD_SUPPLY_DEPOT:
@@ -379,7 +373,7 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 # Upgrades
                 case Actions.UPGRADE_INF_WEAPONS:
-                    INF_ARMOUR_LEVEL = math.floor(
+                    INF_WEAPONS_LEVEL = math.floor(
                         self.already_pending_upgrade(
                             UpgradeId.TERRANINFANTRYWEAPONSLEVEL1
                         )
@@ -469,13 +463,13 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 case Actions.UPGRADE_VEHICLE_WEAPONS:
                     VEHICLE_WEAPONS_LEVEL = math.floor(
                         self.already_pending_upgrade(
-                            UpgradeId.TERRANINFANTRYARMORSLEVEL1
+                            UpgradeId.TERRANVEHICLEWEAPONSLEVEL1
                         )
                         + self.already_pending_upgrade(
-                            UpgradeId.TERRANINFANTRYARMORSLEVEL2
+                            UpgradeId.TERRANVEHICLEWEAPONSLEVEL2
                         )
                         + self.already_pending_upgrade(
-                            UpgradeId.TERRANINFANTRYARMORSLEVEL3
+                            UpgradeId.TERRANVEHICLEWEAPONSLEVEL3
                         )
                     )
 
@@ -588,13 +582,13 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
                             reward += 0.002 * mech_count
                         elif SHIPS_WEAPONS_LEVEL == 1:
                             armory.research(
-                                UpgradeId.TERRANSHIPWEAPONSLEVEL1,
+                                UpgradeId.TERRANSHIPWEAPONSLEVEL2,
                                 can_afford_check=True,
                             )
                             reward += 0.004 * mech_count
                         elif SHIPS_WEAPONS_LEVEL == 2:
                             armory.research(
-                                UpgradeId.TERRANSHIPWEAPONSLEVEL1,
+                                UpgradeId.TERRANSHIPWEAPONSLEVEL3,
                                 can_afford_check=True,
                             )
                             reward += 0.006 * mech_count
