@@ -114,8 +114,6 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # Add more information to observation
             # Punish on unit death and structure destroyed: game_state.dead_units
             # Reward killing enemy unit or structure: game_state.dead_units
-            # Build units on non idle structure with reactor
-            # Land flying buildings
             # Fusion core upgrades
             # Learn where to position structures
             # Cast spells
@@ -750,8 +748,8 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 # Train Units
                 case Actions.TRAIN_SCV:
                     for cc in self.townhalls:
-                        if cc.is_idle and self.can_afford(UnitTypeId.SCV):
-                            cc.train(UnitTypeId.SCV)
+                        if cc.is_idle:
+                            cc.train(UnitTypeId.SCV, can_afford_check=True)
 
                         worker_count = len(self.workers.closer_than(10, cc))
                         # Aim for 22 scvs per base
@@ -759,99 +757,102 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.TRAIN_MARINE:
                     for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
-                        if self.can_afford(UnitTypeId.MARINE):
-                            b.train(UnitTypeId.MARINE)
+                        b.train(UnitTypeId.MARINE, can_afford_check=True)
+                        reward += 0.05
+                        if b.has_reactor:
+                            b.train(UnitTypeId.MARINE, can_afford_check=True)
                             reward += 0.05
 
                 case Actions.TRAIN_REAPER:
                     for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
-                        if self.can_afford(UnitTypeId.REAPER):
-                            b.train(UnitTypeId.REAPER)
+                        b.train(UnitTypeId.REAPER, can_afford_check=True)
+                        reward += 0.01
+                        if b.has_reactor:
+                            b.train(UnitTypeId.REAPER, can_afford_check=True)
                             reward += 0.01
 
                 case Actions.TRAIN_MARAUDER:
                     for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
-                        if self.can_afford(UnitTypeId.MARAUDER):
-                            b.train(UnitTypeId.MARAUDER)
-                            reward += 0.05
-
-                case Actions.TRAIN_MARAUDER:
-                    for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
-                        if self.can_afford(UnitTypeId.MARAUDER):
-                            b.train(UnitTypeId.MARAUDER)
-                            reward += 0.05
+                        b.train(UnitTypeId.MARAUDER, can_afford_check=True)
+                        reward += 0.05
 
                 case Actions.TRAIN_GHOST:
                     for b in self.structures(UnitTypeId.BARRACKS).ready.idle:
-                        if self.can_afford(UnitTypeId.GHOST):
-                            b.train(UnitTypeId.GHOST)
-                            reward += 0.1
+                        b.train(UnitTypeId.GHOST, can_afford_check=True)
+                        reward += 0.1
 
                 case Actions.TRAIN_HELLION:
-                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
-                        if self.can_afford(UnitTypeId.HELLION):
-                            b.train(UnitTypeId.HELLION)
+                    for f in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        f.train(UnitTypeId.HELLION, can_afford_check=True)
+                        reward += 0.03
+                        if f.has_reactor:
+                            f.train(UnitTypeId.HELLION, can_afford_check=True)
                             reward += 0.03
 
                 case Actions.TRAIN_MINE:
-                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
-                        if self.can_afford(UnitTypeId.WIDOWMINE):
-                            b.train(UnitTypeId.WIDOWMINE)
+                    for f in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        f.train(UnitTypeId.WIDOWMINE, can_afford_check=True)
+                        reward += 0.03
+                        if f.has_reactor:
+                            f.train(UnitTypeId.WIDOWMINE, can_afford_check=True)
                             reward += 0.03
 
                 case Actions.TRAIN_CYCLONE:
-                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
-                        if self.can_afford(UnitTypeId.CYCLONE):
-                            b.train(UnitTypeId.CYCLONE)
+                    for f in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        f.train(UnitTypeId.CYCLONE, can_afford_check=True)
+                        reward += 0.02
+                        if f.has_reactor:
+                            f.train(UnitTypeId.CYCLONE, can_afford_check=True)
                             reward += 0.02
 
                 case Actions.TRAIN_TANK:
-                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
-                        if self.can_afford(UnitTypeId.SIEGETANK):
-                            b.train(UnitTypeId.SIEGETANK)
-                            reward += 0.05
+                    for f in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        f.train(UnitTypeId.SIEGETANK, can_afford_check=True)
+                        reward += 0.05
 
                 case Actions.TRAIN_THOR:
-                    for b in self.structures(UnitTypeId.FACTORY).ready.idle:
-                        if self.can_afford(UnitTypeId.THOR):
-                            b.train(UnitTypeId.THOR)
-                            reward += 0.03
+                    for f in self.structures(UnitTypeId.FACTORY).ready.idle:
+                        f.train(UnitTypeId.THOR, can_afford_check=True)
+                        reward += 0.03
 
                 case Actions.TRAIN_VIKING:
-                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
-                        if self.can_afford(UnitTypeId.VIKING):
-                            b.train(UnitTypeId.VIKING)
+                    for s in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        s.train(UnitTypeId.VIKING, can_afford_check=True)
+                        reward += 0.03
+                        if s.has_reactor:
+                            s.train(UnitTypeId.VIKING, can_afford_check=True)
                             reward += 0.03
 
                 case Actions.TRAIN_MEDIVAC:
-                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
-                        if self.can_afford(UnitTypeId.MEDIVAC):
-                            b.train(UnitTypeId.MEDIVAC)
+                    for s in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        s.train(UnitTypeId.MEDIVAC, can_afford_check=True)
+                        reward += 0.05
+                        if s.has_reactor:
+                            s.train(UnitTypeId.MEDIVAC, can_afford_check=True)
                             reward += 0.05
 
                 case Actions.TRAIN_LIBERATOR:
-                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
-                        if self.can_afford(UnitTypeId.LIBERATOR):
-                            b.train(UnitTypeId.LIBERATOR)
+                    for s in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        s.train(UnitTypeId.LIBERATOR, can_afford_check=True)
+                        reward += 0.03
+                        if s.has_reactor:
+                            s.train(UnitTypeId.LIBERATOR, can_afford_check=True)
                             reward += 0.03
 
                 case Actions.TRAIN_BANSHEE:
-                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
-                        if self.can_afford(UnitTypeId.BANSHEE):
-                            b.train(UnitTypeId.BANSHEE)
-                            reward += 0.02
+                    for s in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        s.train(UnitTypeId.BANSHEE, can_afford_check=True)
+                        reward += 0.02
 
                 case Actions.TRAIN_RAVEN:
-                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
-                        if self.can_afford(UnitTypeId.RAVEN):
-                            b.train(UnitTypeId.RAVEN)
-                            reward += 0.02
+                    for s in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        s.train(UnitTypeId.RAVEN, can_afford_check=True)
+                        reward += 0.02
 
                 case Actions.TRAIN_BC:
-                    for b in self.structures(UnitTypeId.STARPORT).ready.idle:
-                        if self.can_afford(UnitTypeId.BATTLECRUISER):
-                            b.train(UnitTypeId.BATTLECRUISER)
-                            reward += 0.03
+                    for s in self.structures(UnitTypeId.STARPORT).ready.idle:
+                        s.train(UnitTypeId.BATTLECRUISER, can_afford_check=True)
+                        reward += 0.03
 
                 # Scout
                 case Actions.SCOUT:
@@ -1076,6 +1077,7 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
             cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", observation)
 
         # Reward logic
+        # TODO reward for killing enemy units
         # print("Dead Units")
         # print(list(GameState.dead_units))
         try:
