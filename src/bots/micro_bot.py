@@ -3,11 +3,11 @@ from typing import Literal
 
 from sc2.ids.unit_typeid import UnitTypeId
 
-from micro.factory.mine_micro import MineMicroMixin
 from src.micro.barracks.marine_micro import MarineMicroMixin
 from src.micro.barracks.maurader_micro import MarauderMicroMixin
 from src.micro.barracks.reaper_micro import ReaperMicroMixin
 from src.micro.factory.hellion_micro import HellionMicroMixin
+from src.micro.factory.mine_micro import MineMicroMixin
 from src.micro.factory.tank_micro import TankMicroMixin
 from src.micro.starport.banshee_micro import BansheeMicroMixin
 from src.micro.starport.medivac_micro import MedivacMicroMixin
