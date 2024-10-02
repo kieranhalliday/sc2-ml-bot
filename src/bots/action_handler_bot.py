@@ -11,7 +11,6 @@ from sc2.game_state import GameState
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.upgrade_id import UpgradeId
-from sc2.unit import Unit
 
 import src.constants as constants
 from src.actions import Actions, bot_actions
@@ -20,7 +19,7 @@ SAVE_REPLAY = True
 
 
 ## Bot to handle machine learning predictions, actions and rewards
-class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
+class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
     micro_mode = "defend"
 
@@ -50,22 +49,12 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 UnitTypeId.BARRACKS,
                 structure.position,
                 addon_place=True,
-                max_distance=20,
             )
-            if new_position is not None and (
-                len(self.structures({UnitTypeId.REACTOR, UnitTypeId.TECHLAB})) == 0
-                or new_position.distance_to_closest(
-                    map(
-                        lambda addon: addon.add_on_land_position,
-                        self.structures({UnitTypeId.REACTOR, UnitTypeId.TECHLAB}),
-                    )
-                )
-                > 3
-            ):
-                structure(
-                    AbilityId.LAND,
-                    new_position,
-                )
+
+            structure(
+                AbilityId.LAND,
+                new_position,
+            )
 
     async def handle_chosen_action(
         self, iteration: int
@@ -115,6 +104,7 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # Cast spells
             # Swap add ons
             # scan invisible units
+            # Land flying buildings
             # Leaking thread? client_session: <aiohttp.client.ClientSession object at 0x32107b770>
             match bot_actions[action]:
                 case Actions.DO_NOTHING:
@@ -1088,8 +1078,6 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         # Reward logic
         # TODO reward for killing enemy units
-        # print("Dead Units")
-        # print(list(GameState.dead_units))
         try:
             attack_count = 0
             # iterate through our marines:

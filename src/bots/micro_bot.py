@@ -3,15 +3,16 @@ from typing import Literal
 
 from sc2.ids.unit_typeid import UnitTypeId
 
-from src.micro.banshee_micro import BansheeMicroMixin
-from src.micro.hellion_micro import HellionMicroMixin
-from src.micro.marine_micro import MarineMicroMixin
-from src.micro.maurader_micro import MarauderMicroMixin
-from src.micro.medivac_micro import MedivacMicroMixin
-from src.micro.raven_micro import RavenMicroMixin
-from src.micro.reaper_micro import ReaperMicroMixin
-from src.micro.tank_micro import TankMicroMixin
-from src.micro.viking_micro import VikingMicroMixin
+from micro.factory.mine_micro import MineMicroMixin
+from src.micro.barracks.marine_micro import MarineMicroMixin
+from src.micro.barracks.maurader_micro import MarauderMicroMixin
+from src.micro.barracks.reaper_micro import ReaperMicroMixin
+from src.micro.factory.hellion_micro import HellionMicroMixin
+from src.micro.factory.tank_micro import TankMicroMixin
+from src.micro.starport.banshee_micro import BansheeMicroMixin
+from src.micro.starport.medivac_micro import MedivacMicroMixin
+from src.micro.starport.raven_micro import RavenMicroMixin
+from src.micro.starport.viking_micro import VikingMicroMixin
 
 
 ## Bot to handle micro behaviors
@@ -20,13 +21,14 @@ from src.micro.viking_micro import VikingMicroMixin
 class MicroBotMixin(
     ReaperMicroMixin,
     MarineMicroMixin,
+    MarauderMicroMixin,
     TankMicroMixin,
-    VikingMicroMixin,
+    HellionMicroMixin,
+    MineMicroMixin,
     RavenMicroMixin,
+    VikingMicroMixin,
     MedivacMicroMixin,
     BansheeMicroMixin,
-    HellionMicroMixin,
-    MarauderMicroMixin,
 ):
     MODE: Literal["attack", "defend"] = "defend"
 
@@ -59,15 +61,16 @@ class MicroBotMixin(
         # Factory micro
         await self.tank_micro(iteration, self.MODE)
         await self.hellion_micro(iteration, self.MODE)
-        # TODO mine cycle tank thor hellbat micro
-        
+        await self.mine_micro(iteration, self.MODE)
+        # TODO cyclone thor hellbat micro
+
         # Starport micro
         await self.raven_micro(iteration, self.MODE)
         await self.viking_micro(iteration, self.MODE)
         await self.medivac_micro(iteration, self.MODE)
         await self.banshee_micro(iteration, self.MODE)
         # TODO liberator bc micro
-        
+
         # Worker micro
         # TODO worker micro
         await self.fight()

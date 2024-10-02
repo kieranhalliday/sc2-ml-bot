@@ -4,10 +4,10 @@ from sc2.data import Race  # difficulty for bots, race for the 1 of 3 races
 from sc2.data import Result
 from stable_baselines3 import PPO
 
-from bots.micro_bot import MicroBotMixin
-from bots.reactive_bot import ReactiveBotMixin
 from sc2env import Sc2Env
-from src.action_handler import ActionHandler
+from src.bots.action_handler_bot import ActionHandlerBotMixin
+from src.bots.micro_bot import MicroBotMixin
+from src.bots.reactive_bot import ReactiveBotMixin
 
 total_steps = 10000
 steps_for_pun = np.linspace(0, 1, total_steps)
@@ -23,7 +23,7 @@ env = Sc2Env()
 model = PPO.load(LOAD_MODEL, env=env)
 
 
-class CompetitiveBot(MicroBotMixin, ActionHandler, ReactiveBotMixin):
+class CompetitiveBot(MicroBotMixin, ActionHandlerBotMixin, ReactiveBotMixin):
     NAME: str = "Raynor's Raider"
     RACE: Race = Race.Terran
 
