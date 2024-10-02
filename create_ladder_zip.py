@@ -30,7 +30,6 @@ files_and_directories_to_zip = [
 ]
 
 # the template for the ladderbots.json file that will be generated
-# TODO how to call test_model from here to use learned model on ladder
 ladderbots_json_template = """{
     "Bots": {
         "[NAME]": {

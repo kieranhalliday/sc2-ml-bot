@@ -24,10 +24,11 @@ VEHICLE_WEAPONS_LEVEL = 0
 VEHICLE_ARMOUR_LEVEL = 0
 SHIPS_WEAPONS_LEVEL = 0
 
+
 ## Bot to handle machine learning predictions, actions and rewards
 class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
-    micro_mode = 'defend'
+    micro_mode = "defend"
 
     async def handle_depot_height(self):
         # Raise depos when enemies are nearby
@@ -45,38 +46,32 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 depo(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
 
     async def land_flying_buildings_with_add_on_space(self):
-        # TODO Find new positions for buildings without add on space
         # Don't land too close to a different add on position unless told to
         for structure in (
             self.structures(UnitTypeId.BARRACKSFLYING).idle
             + self.structures(UnitTypeId.FACTORYFLYING).idle
             + self.structures(UnitTypeId.STARPORTFLYING).idle
         ):
-            # print("Flying structure")
-            # print(structure)
-            for placement_step in range(2, 5):
-                new_position = await self.find_placement(
-                    UnitTypeId.BARRACKS,
-                    structure.position,
-                    addon_place=True,
-                    placement_step=placement_step,
+            new_position = await self.find_placement(
+                UnitTypeId.BARRACKS,
+                structure.position,
+                addon_place=True,
+                max_distance=20,
+            )
+            if new_position is not None and (
+                len(self.structures({UnitTypeId.REACTOR, UnitTypeId.TECHLAB})) == 0
+                or new_position.distance_to_closest(
+                    map(
+                        lambda addon: addon.add_on_land_position,
+                        self.structures({UnitTypeId.REACTOR, UnitTypeId.TECHLAB}),
+                    )
                 )
-                if (
-                    new_position is not None
-                    and new_position.distance_to_closest(
-                        map(
-                            lambda addon: addon.add_on_land_position,
-                            self.structures({UnitTypeId.REACTOR, UnitTypeId.TECHLAB}),
-                        )
-                    )
-                    > 3
-                ):
-                    print("Landing structure")
-                    print(new_position)
-                    structure(
-                        AbilityId.LAND,
-                        new_position,
-                    )
+                > 3
+            ):
+                structure(
+                    AbilityId.LAND,
+                    new_position,
+                )
 
     async def handle_chosen_action(
         self, iteration: int
@@ -129,6 +124,7 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # orbital actions
             # Prep bot to be called as exec file and zipped for competition and only ran once
             # react to events (reactive_bot.py)
+            # Leaking thread? client_session: <aiohttp.client.ClientSession object at 0x32107b770>
             match bot_actions[action]:
                 case Actions.DO_NOTHING:
                     # Small reward for saving minerals
@@ -873,10 +869,10 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 # Attack (known buildings, units, then enemy base)
                 case Actions.ATTACK:
-                    self.micro_mode = 'attack'
-                
+                    self.micro_mode = "attack"
+
                 case Actions.DEFEND:
-                    self.micro_mode = 'defend'
+                    self.micro_mode = "defend"
 
                 # case _:
         except Exception as e:
@@ -1112,5 +1108,5 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
         with open("data/state_rwd_action.pkl", "wb") as f:
             pickle.dump(data, f)
-            
+
         return self.micro_mode

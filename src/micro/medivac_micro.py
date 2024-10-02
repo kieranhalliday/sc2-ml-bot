@@ -9,7 +9,7 @@ class MedivacMicroMixin(BotAI):
     async def medivac_micro(self, iteration: int, mode: Literal["attack", "defend"]):
         medivacs: Units = self.units(UnitTypeId.MEDIVAC)
         hurt_bio_units: Units = self.units(
-            {UnitTypeId.MARINE, UnitTypeId.MARAUDER}
+            {UnitTypeId.MARINE, UnitTypeId.MARAUDER, UnitTypeId.GHOST}
         ).filter(lambda m: m.health_percentage < 100)
 
         if hurt_bio_units.amount == 0:

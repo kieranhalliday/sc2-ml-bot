@@ -50,14 +50,24 @@ class MicroBotMixin(
             self.MODE = "defend"
 
     async def on_step_micro(self, iteration: int):
-        # TODO: replace rules based logic with ML model
-        await self.raven_micro(iteration, self.MODE)
+        # Barracks micro
         await self.reaper_micro(iteration, self.MODE)
         await self.marine_micro(iteration, self.MODE)
         await self.marauder_micro(iteration, self.MODE)
+        # TODO ghost micro
+
+        # Factory micro
         await self.tank_micro(iteration, self.MODE)
+        await self.hellion_micro(iteration, self.MODE)
+        # TODO mine cycle tank thor hellbat micro
+        
+        # Starport micro
+        await self.raven_micro(iteration, self.MODE)
         await self.viking_micro(iteration, self.MODE)
         await self.medivac_micro(iteration, self.MODE)
         await self.banshee_micro(iteration, self.MODE)
-        await self.hellion_micro(iteration, self.MODE)
+        # TODO liberator bc micro
+        
+        # Worker micro
+        # TODO worker micro
         await self.fight()
