@@ -51,6 +51,10 @@ class Actions(Enum):
     UPGRADE_HYPERFLIGHT = "upgrade_hyperflight"
     UPGRADE_INTERFERENCE = "upgrade_interference"
 
+    UPGRADE_WEAPON_REFIT = "upgrade_weapon_refit"
+    UPGRADE_BALISTICS = "upgrade_balistics"
+    UPGRADE_CADUCEUS_REACTOR = "upgrade_caduceus_reactor"
+
     # Train units
     TRAIN_SCV = "train_scv"
     TRAIN_MARINE = "train_marine"
@@ -80,6 +84,7 @@ class Actions(Enum):
     # Morph units hellion, tank, thor, viking, mine
 
     # CC commands
+
 
 bot_actions = [
     Actions.DO_NOTHING,
@@ -124,6 +129,9 @@ bot_actions = [
     Actions.UPGRADE_BANSHEE_CLOAK,
     Actions.UPGRADE_HYPERFLIGHT,
     Actions.UPGRADE_INTERFERENCE,
+    Actions.UPGRADE_WEAPON_REFIT,
+    Actions.UPGRADE_BALISTICS,
+    Actions.UPGRADE_CADUCEUS_REACTOR,
     # Train Units
     Actions.TRAIN_SCV,
     Actions.TRAIN_MARINE,

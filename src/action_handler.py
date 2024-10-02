@@ -114,7 +114,6 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # Add more information to observation
             # Punish on unit death and structure destroyed: game_state.dead_units
             # Reward killing enemy unit or structure: game_state.dead_units
-            # Fusion core upgrades
             # Learn where to position structures
             # Cast spells
             # Swap add ons
@@ -744,6 +743,23 @@ class ActionHandler(BotAI):  # inhereits from BotAI (part of BurnySC2)
                                 UpgradeId.INTERFERENCEMATRIX, can_afford_check=True
                             )
                             reward += 0.25
+
+                case Actions.UPGRADE_WEAPON_REFIT:
+                    if self.structures(UnitTypeId.FUSIONCORE).idle:
+                        self.structures(UnitTypeId.FUSIONCORE).idle.first.research(
+                            UpgradeId.YAMATOCANNON
+                        )
+                case Actions.UPGRADE_BALISTICS:
+                    if self.structures(UnitTypeId.FUSIONCORE).idle:
+                        self.structures(UnitTypeId.FUSIONCORE).idle.first.research(
+                            UpgradeId.LIBERATORAGRANGEUPGRADE
+                        )
+
+                case Actions.UPGRADE_CADUCEUS_REACTOR:
+                    if self.structures(UnitTypeId.FUSIONCORE).idle:
+                        self.structures(UnitTypeId.FUSIONCORE).idle.first.research(
+                            UpgradeId.MEDIVACCADUCEUSREACTOR
+                        )
 
                 # Train Units
                 case Actions.TRAIN_SCV:
