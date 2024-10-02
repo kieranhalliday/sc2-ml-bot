@@ -6,6 +6,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 from src.micro.barracks.marine_micro import MarineMicroMixin
 from src.micro.barracks.maurader_micro import MarauderMicroMixin
 from src.micro.barracks.reaper_micro import ReaperMicroMixin
+from src.micro.cc_micro import CCMicroMixin
 from src.micro.factory.hellion_micro import HellionMicroMixin
 from src.micro.factory.mine_micro import MineMicroMixin
 from src.micro.factory.tank_micro import TankMicroMixin
@@ -16,8 +17,6 @@ from src.micro.starport.viking_micro import VikingMicroMixin
 
 
 ## Bot to handle micro behaviors
-## Desgined to be combined with the MacroBot
-## and extended in the main bot class
 class MicroBotMixin(
     ReaperMicroMixin,
     MarineMicroMixin,
@@ -29,6 +28,7 @@ class MicroBotMixin(
     VikingMicroMixin,
     MedivacMicroMixin,
     BansheeMicroMixin,
+    CCMicroMixin,
 ):
     MODE: Literal["attack", "defend"] = "defend"
 
@@ -52,6 +52,11 @@ class MicroBotMixin(
             self.MODE = "defend"
 
     async def on_step_micro(self, iteration: int):
+        await self.fight()
+
+        # CC micro
+        await self.cc_micro(iteration, self.MODE)
+
         # Barracks micro
         await self.reaper_micro(iteration, self.MODE)
         await self.marine_micro(iteration, self.MODE)
@@ -73,4 +78,3 @@ class MicroBotMixin(
 
         # Worker micro
         # TODO worker micro
-        await self.fight()

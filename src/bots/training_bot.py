@@ -16,9 +16,6 @@ class TrainingBot(MicroBotMixin, ActionHandlerBotMixin, ReactiveBotMixin):
     NAME: str = "Raynor's Raider"
     RACE: Race = Race.Terran
 
-    # Play the game:
-    obs = None
-
     async def on_start(self):
         """
         This code runs once at the start of the game

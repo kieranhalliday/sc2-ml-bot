@@ -7,7 +7,7 @@ from wandb.integration.sb3 import WandbCallback
 from sc2env import Sc2Env
 
 # Continue training an existing model
-LOAD_MODEL = "data/models/1726325503/1000.zip"
+LOAD_MODEL = "data/models/1727844205/90000.zip"
 # Environment:
 env = Sc2Env(training=True)
 
@@ -40,7 +40,7 @@ run = wandb.init(
 
 
 # further train:
-TIMESTEPS = 1000
+TIMESTEPS = 10000
 iters = 0
 while True:
     print("On iteration: ", iters)

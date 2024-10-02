@@ -39,22 +39,24 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 depo(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
 
     async def land_flying_buildings_with_add_on_space(self):
-        # Don't land too close to a different add on position unless told to
         for structure in (
             self.structures(UnitTypeId.BARRACKSFLYING).idle
             + self.structures(UnitTypeId.FACTORYFLYING).idle
             + self.structures(UnitTypeId.STARPORTFLYING).idle
         ):
-            new_position = await self.find_placement(
-                UnitTypeId.BARRACKS,
-                structure.position,
-                addon_place=True,
-            )
+            for placement_step in range(2, 5):
+                new_position = await self.find_placement(
+                    UnitTypeId.BARRACKS,
+                    structure.position.towards_with_random_angle(
+                        self.game_info.map_center, placement_step
+                    ),
+                    placement_step=placement_step,
+                    max_distance=40,
+                )
 
-            structure(
-                AbilityId.LAND,
-                new_position,
-            )
+                if new_position:
+                    structure(AbilityId.LAND, new_position)
+                    break
 
     async def handle_chosen_action(
         self, iteration: int
@@ -85,9 +87,6 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
         for cc in self.townhalls:
             mfs = self.mineral_field.closer_than(10, cc)
             if mfs:
-                mf = max(mfs, key=lambda x: x.mineral_contents)
-                cc(AbilityId.CALLDOWNMULE_CALLDOWNMULE, mf, can_afford_check=True)
-
                 minerals_left = sum(map(lambda mf: mf.mineral_contents, mfs))
                 if minerals_left > max_minerals_left:
                     latest_cc = cc
@@ -95,16 +94,9 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
         if latest_cc is None and self.townhalls:
             latest_cc == random.choice(self.townhalls)
 
+        # Try to keep buildings out of mineral lines
+        new_building_position = latest_cc.position.towards(self.game_info.map_center, 6)
         try:
-            # TODO:
-            # Punish on unit death and structure destroyed: game_state.dead_units
-            # Reward killing enemy unit or structure: game_state.dead_units
-            # Learn where to position structures
-            # Finish micro for all units
-            # Swap add ons
-            # scan invisible units
-            # Land flying buildings
-            # Leaking thread? client_session: <aiohttp.client.ClientSession object at 0x32107b770>
             match bot_actions[action]:
                 case Actions.DO_NOTHING:
                     # Small reward for saving minerals
@@ -140,7 +132,9 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
                                 UnitTypeId.SUPPLYDEPOT, target_depot_location
                             )
                         else:
-                            await self.build(UnitTypeId.SUPPLYDEPOT, latest_cc)
+                            await self.build(
+                                UnitTypeId.SUPPLYDEPOT, new_building_position
+                            )
 
                             if self.supply_left > 15:
                                 reward -= 0.03
@@ -167,7 +161,7 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
                         UnitTypeId.COMMANDCENTER
                     ) == 0 and self.can_afford(UnitTypeId.COMMANDCENTER):
                         await self.expand_now()
-                        reward += 1
+                        reward += 10
                     else:
                         # Penalty for choosing illegal action
                         reward -= 0.005
@@ -180,7 +174,9 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
                                 self.main_base_ramp.barracks_correct_placement,
                             )
                         else:
-                            await self.build(UnitTypeId.BARRACKS, near=latest_cc)
+                            await self.build(
+                                UnitTypeId.BARRACKS, near=new_building_position
+                            )
 
                         # Punish more than 10 barracks
                         reward += 1 - 0.1 * len(self.structures(UnitTypeId.BARRACKS))
@@ -190,7 +186,9 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.BUILD_GHOST_ACADEMY:
                     if self.can_afford(UnitTypeId.GHOSTACADEMY):
-                        await self.build(UnitTypeId.GHOSTACADEMY, near=latest_cc)
+                        await self.build(
+                            UnitTypeId.GHOSTACADEMY, near=new_building_position
+                        )
 
                         # Punish more than 1 GA
                         reward += 0.5 - 0.5 * len(
@@ -202,7 +200,7 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.BUILD_FACTORY:
                     if self.can_afford(UnitTypeId.FACTORY):
-                        await self.build(UnitTypeId.FACTORY, near=latest_cc)
+                        await self.build(UnitTypeId.FACTORY, near=new_building_position)
                         # Punish more than 10 factories
                         reward += 1 - 0.1 * len(self.structures(UnitTypeId.FACTORY))
                     else:
@@ -211,7 +209,9 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.BUILD_STARPORT:
                     if self.can_afford(UnitTypeId.STARPORT):
-                        await self.build(UnitTypeId.STARPORT, near=latest_cc)
+                        await self.build(
+                            UnitTypeId.STARPORT, near=new_building_position
+                        )
 
                         # Punish more than 5 starports
                         reward += 0.5 - 0.1 * len(self.structures(UnitTypeId.STARPORT))
@@ -223,7 +223,7 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
                     if self.can_afford(UnitTypeId.ENGINEERINGBAY):
                         await self.build(
                             UnitTypeId.ENGINEERINGBAY,
-                            near=latest_cc,
+                            near=new_building_position,
                         )
                         # Punish more than 2 ebays
                         reward += 0.25 - 0.125 * len(
@@ -235,7 +235,7 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.BUILD_ARMORY:
                     if self.can_afford(UnitTypeId.ARMORY):
-                        await self.build(UnitTypeId.ARMORY, near=latest_cc)
+                        await self.build(UnitTypeId.ARMORY, near=new_building_position)
 
                         # Punish more than 2 armories
                         reward += 0.5 - 0.25 * len(self.structures(UnitTypeId.ARMORY))
@@ -245,7 +245,9 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.BUILD_FUSION_CORE:
                     if self.can_afford(UnitTypeId.FUSIONCORE):
-                        await self.build(UnitTypeId.FUSIONCORE, near=latest_cc)
+                        await self.build(
+                            UnitTypeId.FUSIONCORE, near=new_building_position
+                        )
                         # Punish more than 1 FC
                         reward += 0.5 - 0.5 * len(
                             self.structures(UnitTypeId.FUSIONCORE)
@@ -256,7 +258,7 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.BUILD_BUNKER:
                     if self.can_afford(UnitTypeId.BUNKER):
-                        await self.build(UnitTypeId.BUNKER, near=latest_cc)
+                        await self.build(UnitTypeId.BUNKER, near=new_building_position)
                         # Aim for 1 bunker per base
                         reward += 0.25 * len(self.townhalls) - 0.25 * len(
                             self.structures(UnitTypeId.BUNKER)
@@ -267,7 +269,12 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.BUILD_TURRET:
                     if self.can_afford(UnitTypeId.MISSILETURRET):
-                        await self.build(UnitTypeId.MISSILETURRET, near=latest_cc)
+                        await self.build(
+                            UnitTypeId.MISSILETURRET,
+                            near=latest_cc.position.towards(
+                                random.choice(self.mineral_field.closer_than(10, cc)), 6
+                            ),
+                        )
 
                         # Aim for 2 turrets per base
                         reward += 0.5 * len(self.townhalls) - 0.25 * len(
@@ -279,7 +286,9 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 case Actions.BUILD_SENSOR:
                     if self.can_afford(UnitTypeId.SENSORTOWER):
-                        await self.build(UnitTypeId.SENSORTOWER, near=latest_cc)
+                        await self.build(
+                            UnitTypeId.SENSORTOWER, near=new_building_position
+                        )
                         # Aim for 1 sensor per base
                         reward += 0.25 * len(self.townhalls) - 0.25 * len(
                             self.structures(UnitTypeId.SENSORTOWER)
@@ -869,7 +878,8 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
 
                 # Attack (known buildings, units, then enemy base)
                 case Actions.ATTACK:
-                    self.micro_mode = "attack"
+                    if self.supply_army > 25:
+                        self.micro_mode = "attack"
 
                 case Actions.DEFEND:
                     self.micro_mode = "defend"
@@ -1075,20 +1085,17 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
             # save observation image into "replays dir"
             cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", observation)
 
-        # Reward logic
-        # TODO reward for killing enemy units
         try:
             attack_count = 0
-            # iterate through our marines:
-            for m in self.units(UnitTypeId.MARINE):
-                # if voidray is attacking and is in range of enemy unit:
-                if m.is_attacking and m.target_in_range:
-                    if self.enemy_units.closer_than(
-                        8, m
-                    ) or self.enemy_structures.closer_than(8, m):
-                        # reward += 0.005 # original was 0.005, decent results, but let's 3x it.
-                        reward += 0.015
-                        attack_count += 1
+            # iterate through our combat units:
+            for u in self.units.idle.filter(
+                lambda unit: unit.type_id != UnitTypeId.SCV
+                and unit.type_id != UnitTypeId.MULE
+            ):
+                if u.is_attacking:
+                    # reward += 0.005 # original was 0.005, decent results, but let's 3x it.
+                    reward += 0.015
+                    attack_count += 1
 
         except Exception as e:
             print("reward", e)

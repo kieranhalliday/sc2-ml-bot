@@ -28,7 +28,7 @@ result = run_multiple_games(
                 Bot(
                     Race.Terran, TrainingBot()
                 ),  # runs our coded bot, protoss race, and we pass our bot object
-                Computer(Race.Random, Difficulty.VeryHard),
+                Computer(Race.Random, Difficulty.Hard),
             ],  # runs a pre-made computer agent
             realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
         )
