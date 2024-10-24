@@ -14,7 +14,7 @@ from src.actions import bot_actions
 class Sc2Env(gymnasium.Env):
     """Custom Environment that follows gym interface"""
 
-    def __init__(self, training=False):
+    def __init__(self):
         super(Sc2Env, self).__init__()
 
         # Define action and observation space
@@ -26,7 +26,6 @@ class Sc2Env(gymnasium.Env):
             shape=(constants.MAX_MAP_HEIGHT, constants.MAX_MAP_WIDTH, 3),
             dtype=np.uint8,
         )
-        self.training = training
 
     def step(self, action):
         wait_for_action = True
@@ -107,9 +106,5 @@ class Sc2Env(gymnasium.Env):
         }  # empty action waiting for the next one!
         with open("data/state_rwd_action.pkl", "wb") as f:
             pickle.dump(data, f)
-
-        if self.training:
-            # run run_training_bot.py non-blocking:
-            subprocess.Popen(["python3", "run_training_bot.py"])
 
         return observation, None  # reward, done, info can't be included
