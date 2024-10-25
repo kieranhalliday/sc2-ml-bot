@@ -13,8 +13,8 @@ env = Sc2Env()
 
 # Play a game with a given model
 # To play with a different model, update the model name and which zip to use
-model_name = 1727844205
-LOAD_MODEL = f"data/models/{model_name}/90000.zip"
+model_name = "competitive_model_1"
+LOAD_MODEL = f"data/models/{model_name}/latest.zip"
 
 # load or create the model:
 model = None
@@ -22,7 +22,7 @@ if os.path.exists(LOAD_MODEL):
     model = PPO.load(LOAD_MODEL, env=env)
     print(f"Loading model {LOAD_MODEL}")
 else:
-    model_name = f"{int(time.time())}"
+    # model_name = f"{int(time.time())}"
     print(f"Creating model {model_name}")
 
     # View logs: tensorboard --logdir=data/logs
@@ -70,6 +70,7 @@ if TRAINING:
             total_timesteps=TIMESTEPS, reset_num_timesteps=False, tb_log_name=f"PPO"
         )
         model.save(f"{models_dir}/{TIMESTEPS*iters}")
+        model.save(f"{models_dir}/latest")
 else:
     while not done:
         action, _states = model.predict(obs)

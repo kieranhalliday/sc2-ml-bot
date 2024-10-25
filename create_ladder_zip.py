@@ -26,7 +26,7 @@ files_and_directories_to_zip = [
     "data",
     "src",
     "requirements.txt",
-    "run_bot.py",
+    "run.py",
 ]
 
 # the template for the ladderbots.json file that will be generated
@@ -36,7 +36,7 @@ ladderbots_json_template = """{
             "Race": "[RACE]",
             "Type": "Python",
             "RootPath": "./",
-            "FileName": "run_bot.py",
+            "FileName": "run.py",
             "Args": "-O",
             "Debug": true,
             "SurrenderPhrase": "(pineapple)"
@@ -46,7 +46,9 @@ ladderbots_json_template = """{
 
 
 def generate_ladderbots_json() -> str:
-    return ladderbots_json_template.replace("[NAME]", bot.NAME).replace("[RACE]", str(bot.RACE).split(".")[1])
+    return ladderbots_json_template.replace("[NAME]", bot.NAME).replace(
+        "[RACE]", str(bot.RACE).split(".")[1]
+    )
 
 
 def zipdir(path: str, ziph: zipfile.ZipFile, remove_path: Optional[str] = None):
@@ -66,7 +68,9 @@ def create_ladder_zip():
 
     # Remove previous archive
     if os.path.isfile(os.path.join(copy_zip_to_folder, zip_archive_name)):
-        print(f"{os.linesep}Deleting {os.path.join(copy_zip_to_folder, zip_archive_name)}")
+        print(
+            f"{os.linesep}Deleting {os.path.join(copy_zip_to_folder, zip_archive_name)}"
+        )
         os.remove(os.path.join(copy_zip_to_folder, zip_archive_name))
 
     files_to_zip = []
@@ -100,7 +104,9 @@ def create_ladder_zip():
 
     shutil.move(zip_archive_name, os.path.join(copy_zip_to_folder, zip_archive_name))
 
-    print(f"{os.linesep}Successfully created {os.path.join(copy_zip_to_folder, zip_archive_name)}")
+    print(
+        f"{os.linesep}Successfully created {os.path.join(copy_zip_to_folder, zip_archive_name)}"
+    )
 
 
 def main():
