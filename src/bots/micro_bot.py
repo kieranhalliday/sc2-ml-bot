@@ -3,14 +3,19 @@ from typing import Literal
 
 from sc2.ids.unit_typeid import UnitTypeId
 
+from src.micro.barracks.ghost_micro import GhostMicroMixin
 from src.micro.barracks.marine_micro import MarineMicroMixin
 from src.micro.barracks.maurader_micro import MarauderMicroMixin
 from src.micro.barracks.reaper_micro import ReaperMicroMixin
 from src.micro.cc_micro import CCMicroMixin
+from src.micro.factory.cyclone_micro import CycloneMicroMixin
 from src.micro.factory.hellion_micro import HellionMicroMixin
 from src.micro.factory.mine_micro import MineMicroMixin
 from src.micro.factory.tank_micro import TankMicroMixin
+from src.micro.factory.thor_micro import ThorMicroMixin
 from src.micro.starport.banshee_micro import BansheeMicroMixin
+from src.micro.starport.battlecruiser_micro import BattleCruiserMicroMixin
+from src.micro.starport.liberator_micro import LiberatorMicroMixin
 from src.micro.starport.medivac_micro import MedivacMicroMixin
 from src.micro.starport.raven_micro import RavenMicroMixin
 from src.micro.starport.viking_micro import VikingMicroMixin
@@ -21,13 +26,18 @@ class MicroBotMixin(
     ReaperMicroMixin,
     MarineMicroMixin,
     MarauderMicroMixin,
+    GhostMicroMixin,
     TankMicroMixin,
     HellionMicroMixin,
     MineMicroMixin,
+    ThorMicroMixin,
     RavenMicroMixin,
     VikingMicroMixin,
     MedivacMicroMixin,
     BansheeMicroMixin,
+    BattleCruiserMicroMixin,
+    LiberatorMicroMixin,
+    CycloneMicroMixin,
     CCMicroMixin,
 ):
     MODE: Literal["attack", "defend"] = "defend"
@@ -61,20 +71,22 @@ class MicroBotMixin(
         await self.reaper_micro(iteration, self.MODE)
         await self.marine_micro(iteration, self.MODE)
         await self.marauder_micro(iteration, self.MODE)
-        # TODO ghost micro
+        await self.ghost_micro(iteration, self.MODE)
 
         # Factory micro
         await self.tank_micro(iteration, self.MODE)
         await self.hellion_micro(iteration, self.MODE)
         await self.mine_micro(iteration, self.MODE)
-        # TODO cyclone thor hellbat micro
+        await self.thor_micro(iteration, self.MODE)
+        await self.cyclone_micro(iteration, self.MODE)
 
         # Starport micro
         await self.raven_micro(iteration, self.MODE)
         await self.viking_micro(iteration, self.MODE)
         await self.medivac_micro(iteration, self.MODE)
         await self.banshee_micro(iteration, self.MODE)
-        # TODO liberator bc micro
+        await self.battlecruiser_micro(iteration, self.MODE)
+        await self.liberator_micro(iteration, self.MODE)
 
         # Worker micro
         # TODO worker micro

@@ -10,11 +10,12 @@ class RavenMicroMixin(BotAI):
     async def raven_micro(self, iteration: int, mode: Literal["attack", "defend"]):
         ravens: Units = self.units(UnitTypeId.RAVEN)
 
-        priority_units = [
+        priority_unit_types = [
             UnitTypeId.SIEGETANKSIEGED,
             UnitTypeId.THOR,
             UnitTypeId.COLOSSUS,
             UnitTypeId.CARRIER,
+            UnitTypeId.TEMPEST,
             UnitTypeId.BATTLECRUISER,
         ]
 
@@ -25,7 +26,7 @@ class RavenMicroMixin(BotAI):
             and unit.type_id is not UnitTypeId.MULE
         )
         priority_enemy_mechanicals = enemy_mechanicals.filter(
-            lambda unit: unit.type_id in priority_units
+            lambda unit: unit.type_id in priority_unit_types
         )
 
         for raven in ravens.idle:

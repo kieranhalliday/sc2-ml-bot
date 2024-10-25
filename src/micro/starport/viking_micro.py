@@ -14,7 +14,7 @@ class VikingMicroMixin(BotAI):
             UnitTypeId.VIKINGASSAULT
         )
 
-        priority_units = [
+        priority_unit_types = [
             UnitTypeId.RAVEN,
             UnitTypeId.BATTLECRUISER,
             UnitTypeId.CARRIER,
@@ -25,7 +25,7 @@ class VikingMicroMixin(BotAI):
 
         flying_units = self.enemy_units.filter(lambda unit: unit.is_flying)
         priority_flying_units = flying_units.filter(
-            lambda unit: unit.type_id in priority_units
+            lambda unit: unit.type_id in priority_unit_types
         )
 
         for v in vikings.flying.idle:

@@ -7,7 +7,6 @@ import cv2
 import numpy as np
 from sc2.bot_ai import BotAI  # parent class we inherit from
 from sc2.bot_ai import Race
-from sc2.game_state import GameState
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.upgrade_id import UpgradeId
@@ -739,7 +738,7 @@ class ActionHandlerBotMixin(BotAI):  # inhereits from BotAI (part of BurnySC2)
                 case Actions.UPGRADE_WEAPON_REFIT:
                     if self.structures(UnitTypeId.FUSIONCORE).idle:
                         self.structures(UnitTypeId.FUSIONCORE).idle.first.research(
-                            UpgradeId.YAMATOCANNON
+                            UpgradeId.BATTLECRUISERENABLESPECIALIZATIONS
                         )
                 case Actions.UPGRADE_BALISTICS:
                     if self.structures(UnitTypeId.FUSIONCORE).idle:

@@ -1,7 +1,9 @@
 This file will hold all my ideas and todos for this project.
 
 Short Term:
-Finish micro for all units
+Nukes for ghosts
+Fix medivac micro
+worker micro
 
 Long Term:
 Learn where to position structures
